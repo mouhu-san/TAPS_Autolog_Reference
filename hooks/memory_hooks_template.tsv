@@ -1,1 +1,6 @@
-a
+構文トリガ	分類カテゴリ	補足説明
+@TAPS:log	記録	現在の内容を記録対象として保存ログに追加
+@TAPS:save	保存	対象内容をDriveに構造保存
+@TAPS:export	出力	記録されたデータを出力（.md/.tsv 形式など）
+@TAPS:memory	記憶同期	GPTやCopilot向けに記憶同期対象として抽出
+@TAPS:clear	消去	記録内容のクリアまたは記憶トリガ除去
