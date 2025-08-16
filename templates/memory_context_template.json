@@ -1,0 +1,20 @@
+{
+  "timestamp": "{{TIMESTAMP}}",
+  "source": "ChatGPT",
+  "user_id": "{{USER_ID}}",
+  "trigger": "{{TRIGGER}}",
+  "category": "{{CATEGORY}}",
+  "content": {
+    "raw_input": "{{RAW_INPUT}}",
+    "interpreted_meaning": "{{MEANING}}",
+    "summary": "{{SUMMARY}}"
+  },
+  "metadata": {
+    "canvas_id": "{{CANVAS_ID}}",
+    "storage_path": "{{DRIVE_PATH}}",
+    "tags": [
+      "{{TAG1}}",
+      "{{TAG2}}"
+    ]
+  }
+}

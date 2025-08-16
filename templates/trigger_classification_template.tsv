@@ -1,0 +1,7 @@
+構文	カテゴリ	保存先Canvas	保存先DrivePath	備考
+@TAPS:save	health	01	/memory/	体調ログ（日常）
+@TAPS:log	mood	02	/memory/	精神ログ（感情変動）
+@TAPS:event	event	05	/canvas-raw/	出来事・記念日
+@TAPS:memory	memory	03	/log-summary/	記憶再構築
+@TAPS:idea	idea	08	/canvas-raw/	アイデア／構想
+@TAPS:meta	meta	99	/meta/	設定・構文・技術指示
