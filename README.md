@@ -4,7 +4,50 @@
 **記録・分類・同期構造の参照実装**を保存・共有するためのリファレンスアーカイブである。
 
 ---
+## Quick Start
 
+1. Clone:
+   ```bash
+   git clone https://github.com/mouhu-san/taps_autolog_reference.git
+   cd taps_autolog_reference
+
+2. ARIX-16 仕様一式は ./arix-16/ にあります 
+
+ - schema/arix16.schema.json … JSON Schema
+
+ - templates/ … TSVヘッダ・トリガ辞書・メモリ文脈
+
+ - examples/ … 埋め込みメタ例・出力サンプル 
+  
+3. スキーマ検証（任意）
+ npm i -g ajv-cli
+ ajv validate -s ./arix-16/schema/arix16.schema.json \
+  -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl --spec=draft2020
+
+1. 他リポジトリから参照する場合は、./arix-16/templates/ を読み込んで契約（列順/必須項目）に従ってください。
+ 
+ ### 「何行目」に入れるか迷ったら（自動差し込みの目安）
+ - ルール：**ファイル先頭の `# ` 行（H1）の“次の空行の後”**に入れる。  
+ - 例（PowerShell／Windows）:
+  ```powershell
+  $p = "README.md"
+  $t = Get-Content $p
+  $i = ($t | Select-String -Pattern '^# ' -List).LineNumber
+  $before = $t[0..($i)]
+  $after  = $t[($i+1)..($t.Length-1)]
+  $qs = @"
+  ## Quick Start
+
+  1. Clone:
+     ```bash
+     git clone https://github.com/mouhu-san/taps_autolog_reference.git
+     cd taps_autolog_reference
+     ```
+  (…略…)
+  "@
+  ($before + "" + $qs + "" + $after) | Set-Content $p -Encoding UTF8
+  ```
+---
 ## 🎯 プロジェクトの目的
 
 - 人間とAIが「記録・会話・感情・分類」を共有できる持続的な記憶構造を実装
