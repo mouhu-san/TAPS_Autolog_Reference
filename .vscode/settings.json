@@ -1,0 +1,17 @@
+{
+  // JSONL を JSON として扱う（赤線出せるようにする）
+  "files.associations": {
+    "*.jsonl": "json"
+  },
+
+  // JSON Schema をファイルパターンに関連付け（リアルタイム検証）
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/arix-16/examples/exports_sample/*.jsonl",
+        "/exports/**/*.jsonl"
+      ],
+      "url": "./arix-16/schema/arix16.schema.draft-07.json"
+    }
+  ]
+}
