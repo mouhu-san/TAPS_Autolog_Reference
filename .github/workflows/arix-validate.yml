@@ -1,0 +1,56 @@
+name: ARIX Validate
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install ajv
+        run: npm i -g ajv-cli ajv-formats
+
+      - name: Run schema validation and capture output
+        id: ajv_check
+        shell: bash
+        run: |
+          mkdir -p ./artifacts
+          # run ajv, redirect stdout/stderr to file and capture exit code
+          ajv validate -c ajv-formats \
+            -s ./arix-16/schema/arix16.schema.json \
+            -d "./arix-16/examples/exports_sample/*.jsonl" \
+            --spec=draft2020 > ./artifacts/ajv_out.txt 2>&1 || echo "AJV_FAILED" > ./artifacts/ajv_status.txt
+          # TSV header check (node script), append output
+          node ./scripts/validate_tsv_headers.js >> ./artifacts/ajv_out.txt 2>&1 || echo "TSV_FAILED" >> ./artifacts/ajv_status.txt
+          # set step output for later condition
+          if [ -f ./artifacts/ajv_status.txt ]; then echo "::set-output name=status::failed"; else echo "::set-output name=status::ok"; fi
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arix-validate-logs
+          path: ./artifacts
+
+      - name: Create issue on failure
+        if: steps.ajv_check.outputs.status == 'failed'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.existsSync('./artifacts/ajv_out.txt') ? fs.readFileSync('./artifacts/ajv_out.txt','utf8').slice(0,32000) : 'No log';
+            const title = '[ARIX Validate] Schema/TSV check failed on ' + process.env.GITHUB_REF_NAME;
+            // avoid duplicate issues by searching existing open issues with same title
+            const issues = await github.rest.issues.listForRepo({owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100});
+            if (!issues.data.some(i => i.title === title)) {
+              await github.rest.issues.create({owner: context.repo.owner, repo: context.repo.repo, title, body});
+            } else {
+              console.log('Issue already exists, skipping creation.');
+            }
