@@ -1,0 +1,21 @@
+trigger_pattern	category	subcategory	intent	priority	match_policy	normalizer	route_module	action	extractor_fields	example	notes
+@ARIX:save	memory	sync	decide	high	exact	trim,lower	memory.sync	save_record	uid,timestamp,topic	"@ARIX:save 今日の進捗"	強制保存・要約付与
+@ARIX:note	memory	note	note	med	exact	trim	memory.sync	save_note	uid,timestamp	"@ARIX:note メモ: TODO…"	軽量メモ。要約短文
+@ARIX:bench	analysis	benchmark	benchmark	med	exact	trim,upper	bench.run	run_benchmark	params	"@ARIX:bench MAX_FILE_CHARS=10000"	性能比較や設定試験
+@ARIX:export	io	tsv	jsonl	high	exact	trim	exporter.run	export_all	scope,week	"@ARIX:export week=W33 scope=all"	週次エクスポート
+@ARIX:import	io	restore	ingest	high	exact	trim	importer.run	import_batch	source	"@ARIX:import source=Drive:Canvas"	外部取込
+@ARIX:link	memory	thread	link	med	exact	trim,rewrite	reconciler.run	link_threads	uid,prev,next	"@ARIX:link TAPS-2025-08-18-010..015"	Prev/Next 補完
+@ARIX:classify	analysis	tagging	classify	med	exact	trim	classifier.run	assign_tags	model,threshold	"@ARIX:classify model=std@0.7"	タグ自動付与
+@ARIX:retag	analysis	tagging	update	med	exact	trim	classifier.run	retag	scope	"@ARIX:retag scope=last3d"	直近範囲の再分類
+@ARIX:ctx	memory	context	generate	med	exact	trim	memory.ctx	build_context	window	"@ARIX:ctx window=5 prev"	実行文脈の要約抽出
+@ARIX:health	personal	state	note	low	regex:nlp	lemmatize	memory.sync	save_note	topic	"体調: 頭痛/倦怠感…"	健康系の自然言語検出
+@ARIX:mood	personal	affect	note	low	regex:nlp	lemmatize	memory.sync	save_note	topic	"今日は気分が重い"	感情・気分
+@ARIX:milestone	project	event	decide	high	regex	normdate,morph	memory.sync	save_record	date,topic	"v1.1 を8/31にリリース"	期日付与で重要扱い
+@ARIX:schedule	calendar	event	decide	med	regex	normdate	scheduler.run	add_event	when,what	"明日10時にレビュー"	GCal 連携前提
+@ARIX:snapshot	io	drive	save	med	exact	trim,lower	driver.scan	save_snapshot	path	"@ARIX:snapshot /TAPS/Logs"	Drive 構造スナップ
+@ARIX:policy	project	rules	update	med	exact	trim	policy.sync	update_doc	doc	"@ARIX:policy 更新 points=…"	規約の更新
+@ARIX:tsv	analysis	lexicon	export	med	exact	trim,upper	exporter.run	export_lexicon	mode	"@ARIX:TSV KT=0.50,0.70"	KT 切り出し
+@ARIX:bigram	analysis	lexicon	benchmark	med	exact	trim	exporter.run	export_bigram	params	"@ARIX:bigram files=30"	Bigram 比較
+記念日|誕生日	calendar	event	note	low	regex	jpn_norm	memory.sync	save_note	date,who	"今日は○○の誕生日"	自然文イベント
+体調|睡眠|疲れ	personal	state	note	low	regex	jpn_norm	memory.sync	save_note	topic	"睡眠不足で辛い"	健康系
+嬉しい|悲しい|不安	personal	affect	note	low	regex	jpn_norm	memory.sync	save_note	topic	"不安が強い…"	感情系

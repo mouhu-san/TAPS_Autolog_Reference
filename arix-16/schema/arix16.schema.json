@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TAPS ARIX-16 Conversation Record",
+  "type": "object",
+  "required": [
+    "UID",
+    "Timestamp",
+    "Speaker",
+    "TopicTag",
+    "Intent",
+    "ThreadRoot",
+    "RawExcerpt"
+  ],
+  "properties": {
+    "UID": {
+      "type": "string",
+      "pattern": "^TAPS-\\d{4}-\\d{2}-\\d{2}-\\d{3}$"
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Speaker": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ]
+    },
+    "TopicTag": {
+      "type": "string"
+    },
+    "Intent": {
+      "type": "string",
+      "enum": [
+        "ask",
+        "decide",
+        "generate",
+        "benchmark",
+        "note",
+        "other"
+      ]
+    },
+    "Prev": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "Next": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ThreadRoot": {
+      "type": "string"
+    },
+    "SummaryShort": {
+      "type": "string"
+    },
+    "SummaryLong": {
+      "type": "string"
+    },
+    "ActionItems": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "Decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "DataRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "RiskNotes": {
+      "type": "string"
+    },
+    "Metrics": {
+      "type": "string"
+    },
+    "RawExcerpt": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
