@@ -1,0 +1,65 @@
+{
+  "spec": "ARIX-16",
+  "version": "1.1.0",
+  "timezone": "Asia/Tokyo",
+  "uid": {
+    "pattern": "TAPS-YYYY-MM-DD-SSS",
+    "start_serial": 1,
+    "padding": 3,
+    "prev_next_policy": "prev=last_uid_of_day; next=pending_then_reconcile"
+  },
+  "segmentation": {
+    "max_file_chars": 10000,
+    "unit": "per-conversation",
+    "raw_excerpt_len": 512,
+    "thread_root_policy": "first_uid_in_thread"
+  },
+  "required_fields": [
+    "UID","Timestamp","Speaker","TopicTag","Intent","ThreadRoot","RawExcerpt"
+  ],
+  "summarization": {
+    "short": { "target_chars": 140, "style": "factual" },
+    "long": { "lines": 5, "bulleted_allowed": true }
+  },
+  "routing": {
+    "save_record": "memory.sync",
+    "save_note": "memory.sync",
+    "link_threads": "reconciler.run",
+    "export_all": "exporter.run",
+    "assign_tags": "classifier.run"
+  },
+  "lexicon": {
+    "coverage_thresholds": [0.5, 0.7],
+    "use_bigram_monthly": true
+  },
+  "redaction": {
+    "pii_mask": true,
+    "pii_types": ["email","phone","location_partial"],
+    "policy": "mask-in-tsv, keep-in-jsonl-only-if-consented"
+  },
+  "export": {
+    "targets": [
+      "tsv: exports/taps_grau16_YYYY-Www.tsv",
+      "jsonl: exports/taps_grau16_YYYY-Www.jsonl"
+    ],
+    "encoding": "utf-8",
+    "escape_rules": { "tab": " ", "newline": " " }
+  },
+  "triggers": {
+    "primary": ["@ARIX:save","@ARIX:note","@ARIX:export","@ARIX:link","@ARIX:classify"],
+    "natural_language": ["記念日","体調","気分","嬉しい","悲しい","不安"]
+  },
+  "do_d_constraints": {
+    "definition_of_done": [
+      "Prev/Next が週次 reconcile 後に完全埋め",
+      "TSV/JSONL が同件数・キー整合",
+      "KT=0.50/0.70 の切り出しが生成済み"
+    ],
+    "rollback": "export に差異が出た週は reconcile を再実行し、差分のみ再出力"
+  },
+  "ops": {
+    "daily": ["memory.sync (light)"],
+    "weekly": ["reconciler.run", "exporter.run(tsv,jsonl,kt)"],
+    "monthly": ["lexicon bigram benchmark (30 files)"]
+  }
+}
