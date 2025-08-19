@@ -24,11 +24,11 @@
  ajv validate -s ./arix-16/schema/arix16.schema.json \
   -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl --spec=draft2020
 
-1. 他リポジトリから参照する場合は、./arix-16/templates/ を読み込んで契約（列順/必須項目）に従ってください。
- 
- ### 「何行目」に入れるか迷ったら（自動差し込みの目安）
- - ルール：**ファイル先頭の `# ` 行（H1）の“次の空行の後”**に入れる。  
- - 例（PowerShell／Windows）:
+4. 他リポジトリから参照する場合は、./arix-16/templates/ を読み込んで契約（列順/必須項目）に従ってください。
+```
+### 「何行目」に入れるか迷ったら（自動差し込みの目安）
+- ルール：**ファイル先頭の `# ` 行（H1）の“次の空行の後”**に入れる。  
+- 例（PowerShell／Windows）:
   ```powershell
   $p = "README.md"
   $t = Get-Content $p
@@ -46,7 +46,7 @@
   (…略…)
   "@
   ($before + "" + $qs + "" + $after) | Set-Content $p -Encoding UTF8
-  ```
+```
 ---
 ## 🎯 プロジェクトの目的
 
