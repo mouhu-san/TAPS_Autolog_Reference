@@ -1,21 +1,42 @@
-"name": "ARIX Validate (MVP)"
-"on":
-  - "push"
-  - "pull_request"
-"jobs":
-  "validate":
-    "runs-on": "ubuntu-latest"
-    "steps":
-      - "uses": "actions/checkout@v4"
-      - "uses": "actions/setup-node@v4"
-        "with":
-          "node-version": 18
-      - "run": "npm i -g ajv-cli ajv-formats"
-      - "name": "Schema validate (sample JSON)"
-        "run": "ajv validate -c ajv-formats \\
+name: ARIX Validate
+on: [push, pull_request]
 
-          \  -s ./arix-16/schema/arix16.schema.json \\
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-          \  -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.json \\
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-          \  --spec=draft2020\n"
+      - name: Install ajv
+        run: npm i -g ajv-cli ajv-formats
+
+      # ★ ここが追加の存在確認ステップ
+      - name: Debug sample presence
+        run: |
+          echo "== pwd =="
+          pwd
+          echo "== repo tree (depth 3) =="
+          find . -maxdepth 3 -type d -print
+          echo "== list examples dir =="
+          ls -la arix-16/examples/exports_sample || true
+          echo "== head of sample JSON (if exists) =="
+          if [ -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json ]; then
+            head -n1 arix-16/examples/exports_sample/taps_arix16_2025-W33.json
+          else
+            echo "(no json file yet)"
+          fi
+          echo "== presence test =="
+          test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json && echo "FOUND JSON" || (echo "MISSING JSON"; exit 2)
+
+      - name: Schema validate (sample JSON)
+        run: |
+          ajv validate -c ajv-formats \
+            -s ./arix-16/schema/arix16.schema.json \
+            -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.json \
+            --spec draft2020
