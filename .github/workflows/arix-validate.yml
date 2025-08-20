@@ -31,4 +31,4 @@ jobs:
           if compgen -G "$JSONL_GLOB" > /dev/null; then
             for f in $JSONL_GLOB; do
               echo "::group::Validating NDJSON file: $f"
-              awk 'NF && $0 !~ /^#/' "$f
+              awk 'NF && $0 !~ /^#/' "$f'
