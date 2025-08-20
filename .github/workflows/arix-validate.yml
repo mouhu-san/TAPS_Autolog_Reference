@@ -1,17 +1,33 @@
-name: ARIX Validate (MVP)
+name: ARIX Validate
 on: [push, pull_request]
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm i -g ajv-cli ajv-formats
-      - name: Schema validate (sample JSONL)
+
+      - name: Install ajv
+        run: npm i -g ajv-cli ajv-formats
+
+      - name: JSONL schema validate
         run: |
           ajv validate -c ajv-formats \
             -s ./arix-16/schema/arix16.schema.json \
-            -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl \
+            -d "./arix-16/examples/exports_sample/*.jsonl" \
             --spec=draft2020
+
+      - name: TSV header check
+        run: node ./scripts/validate_tsv_headers.js
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arix-validate-logs
+          path: ./artifacts
