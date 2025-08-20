@@ -29,23 +29,4 @@ jobs:
           LOG_DIR='logs'
           mkdir -p "$LOG_DIR"
 
-          if compgen -G "$JSONL_GLOB" > /dev/null; then
-            for f in $JSONL_GLOB; do
-              LOG_FILE="$LOG_DIR/$(basename "$f").log"
-              echo "::group::Validating NDJSON file: $f"
-              echo "Validating file: $f" > "$LOG_FILE"
-              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec draft2020 >> "$LOG_FILE" 2>&1
-              done
-              echo "::endgroup::"
-            done
-          else
-            echo "⚠️ No .jsonl files found under arix-16/examples/exports_sample/ (skipping)."
-          fi
-
-      - name: Upload Validation Logs
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: validation-logs
-          path: logs/
+          if compgen -G "$JSONL_GLOB" > /dev
