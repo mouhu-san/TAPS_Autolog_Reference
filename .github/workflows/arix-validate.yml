@@ -16,27 +16,44 @@ jobs:
       - name: Install ajv
         run: npm i -g ajv-cli ajv-formats
 
-      # ★ ここが追加の存在確認ステップ
+      # デバッグ：ファイル配置とサンプル確認（任意だが安心）
       - name: Debug sample presence
+        shell: bash
         run: |
-          echo "== pwd =="
-          pwd
-          echo "== repo tree (depth 3) =="
-          find . -maxdepth 3 -type d -print
-          echo "== list examples dir =="
-          ls -la arix-16/examples/exports_sample || true
-          echo "== head of sample JSON (if exists) =="
-          if [ -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json ]; then
-            head -n1 arix-16/examples/exports_sample/taps_arix16_2025-W33.json
-          else
-            echo "(no json file yet)"
-          fi
-          echo "== presence test =="
-          test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json && echo "FOUND JSON" || (echo "MISSING JSON"; exit 2)
+          echo "== pwd ==" && pwd
+          echo "== list examples ==" && ls -la arix-16/examples/exports_sample || true
+          echo "== head of JSON (if exists) ==" && (test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json && head -n1 arix-16/examples/exports_sample/taps_arix16_2025-W33.json || echo "(no json)")
+          echo "== head of JSONL (if exists) ==" && (test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl && head -n1 arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl || echo "(no jsonl)")
 
+      # まずは単一JSONで通電（A案）
       - name: Schema validate (sample JSON)
+        shell: bash
         run: |
           ajv validate -c ajv-formats \
             -s ./arix-16/schema/arix16.schema.json \
             -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.json \
             --spec draft2020
+
+      # ① NDJSON（.jsonl）を行単位で検証（存在すれば全ファイルを対象）
+      - name: Validate NDJSON (each line)
+        shell: bash
+        run: |
+          set -e
+          SCHEMA='./arix-16/schema/arix16.schema.json'
+          JSONL_GLOB='arix-16/examples/exports_sample/*.jsonl'
+          if compgen -G "$JSONL_GLOB" > /dev/null; then
+            for f in $JSONL_GLOB; do
+              echo "::group::Validating NDJSON file: $f"
+              # 空行/コメント行(#始まり)を除外して1行ずつAJVへ
+              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
+                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec draft2020
+              done
+              echo "::endgroup::"
+            done
+          else
+            echo "No .jsonl files found under arix-16/examples/exports_sample (skipping)."
+          fi
+
+      # ② TSVヘッダ検査（scripts/validate_tsv_headers.js をリポジトリに置いておくこと）
+      - name: TSV header check
+        run: node ./scripts/validate_tsv_headers.js
