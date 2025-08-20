@@ -1,5 +1,3 @@
-# .github/workflows/arix-validate.yml 最上行
-#!/usr/bin/env bash
 name: ARIX Validate (MVP)
 on: [push, pull_request]
 jobs:
@@ -16,4 +14,4 @@ jobs:
     ajv validate -c ajv-formats \
       -s arix-16/schema/arix16.schema.json \
       -d arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl \
-      --spec draft2020
+      --spec=draft2020
