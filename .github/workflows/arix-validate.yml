@@ -34,7 +34,7 @@ jobs:
             -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.json \
             --spec draft2020
 
-      # ① NDJSON（.jsonl）を行単位で検証（存在すれば全ファイルを対象）
+      # NDJSON（.jsonl）を行単位で検証（存在すれば全ファイルを対象）
       - name: Validate NDJSON (each line)
         shell: bash
         run: |
@@ -54,6 +54,6 @@ jobs:
             echo "No .jsonl files found under arix-16/examples/exports_sample (skipping)."
           fi
 
-      # ② TSVヘッダ検査（scripts/validate_tsv_headers.js をリポジトリに置いておくこと）
+      # TSVヘッダ検査（scripts/validate_tsv_headers.js をリポジトリに置いておくこと）
       - name: TSV header check
         run: node ./scripts/validate_tsv_headers.js
