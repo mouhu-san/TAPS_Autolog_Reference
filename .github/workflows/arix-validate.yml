@@ -1,5 +1,4 @@
 name: ARIX Validate
-
 on:
   push:
     paths:
@@ -22,25 +21,31 @@ jobs:
       - name: Install AJV CLI
         run: npm install -g ajv-cli ajv-formats
 
-      - name: Debug sample presence
-        run: |
-          ls -la arix-16/examples/exports_sample || true
-          test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json && echo "FOUND JSON" || (echo "MISSING JSON"; exit 2)
-
       - name: Validate NDJSON (each line)
         run: |
           set -e
           SCHEMA='./arix-16/schema/arix16.schema.json'
           JSONL_GLOB='arix-16/examples/exports_sample/*.jsonl'
+          LOG_DIR='logs'
+          mkdir -p "$LOG_DIR"
 
           if compgen -G "$JSONL_GLOB" > /dev/null; then
             for f in $JSONL_GLOB; do
+              LOG_FILE="$LOG_DIR/$(basename "$f").log"
               echo "::group::Validating NDJSON file: $f"
-              while IFS= read -r line; do
-                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec draft2020
-              done < <(awk 'NF && $0 !~ /^#/' "$f")
+              echo "Validating file: $f" > "$LOG_FILE"
+              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
+                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec draft2020 >> "$LOG_FILE" 2>&1
+              done
               echo "::endgroup::"
             done
           else
             echo "⚠️ No .jsonl files found under arix-16/examples/exports_sample/ (skipping)."
           fi
+
+      - name: Upload Validation Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: validation-logs
+          path: logs/
