@@ -1,5 +1,3 @@
-{"UID": "TAPS-2025-08-18-023", "Timestamp": "2025-08-18T22:41:00+09:00", "Speaker": "user", "TopicTag": "memory_sync", "Intent": "decide", "Prev": "TAPS-2025-08-18-022", "Next": "(pending)", "ThreadRoot": "TAPS-2025-08-18-010", "SummaryShort": "ARIX-16導入方針決定", "SummaryLong": "会話を小瓶化…", "ActionItems": ["MAX_FILE_CHARS=10000で本番運用へ", "日次/週次トリガ設定"], "Decisions": ["連番はTAPS-YYYY-MM-DD-SSS"], "DataRefs": ["Git: mouhu-san/TAPS_Autolog_Reference"], "RiskNotes": "zip配布不安定→TSV直出し", "Metrics": "chars=1420,tokens=210,elapsed_ms=1150", "RawExcerpt": "記憶の連続性を……"}
-=======
 name: ARIX Validate (MVP)
 on: [push, pull_request]
 jobs:
@@ -12,8 +10,8 @@ jobs:
           node-version: 18
       - run: npm i -g ajv-cli ajv-formats
       - name: Schema validate (sample JSONL)
-  run: |
-    ajv validate -c ajv-formats \
-      -s arix-16/schema/arix16.schema.json \
-      -d arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl \
-      --spec=draft2020
+        run: |
+          ajv validate -c ajv-formats \
+            -s ./arix-16/schema/arix16.schema.json \
+            -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl \
+            --spec=draft2020
