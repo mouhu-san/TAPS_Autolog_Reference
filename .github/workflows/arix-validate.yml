@@ -22,13 +22,12 @@ jobs:
       - name: Install AJV CLI
         run: npm install -g ajv-cli ajv-formats
 
-      - name: Validate NDJSON (each line)
-        run: |
-          set -e
-          SCHEMA='./arix-16/schema/arix16.schema.json'
-          JSONL_GLOB='arix-16/examples/exports_sample/*.jsonl'
-
-          if compgen -G "$JSONL_GLOB" > /dev/null; then
-            for f in $JSONL_GLOB; do
-              echo "::group::Validating NDJSON file: $f"
-              awk 'NF && $0 !~ /^#/' "$f'
+      - name: Validate TSV headers
+  run: |
+    for f in arix-16/examples/exports_sample/*.tsv; do
+      echo "Checking: $f"
+      awk 'NF && $0 !~ /^#/' "$f" | head -n 1 | grep -qE '^header1\theader2\theader3$' || {
+        echo "::error file=$f::Invalid headers in $f"
+        exit 1
+      }
+    done
