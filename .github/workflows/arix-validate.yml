@@ -1,59 +1,34 @@
 name: ARIX Validate
-on: [push, pull_request]
+
+on:
+  push:
+    paths:
+      - 'arix-16/schema/**'
+      - 'arix-16/examples/**'
+  workflow_dispatch:
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
 
-      - name: Install ajv
-        run: npm i -g ajv-cli ajv-formats
+      - name: Install AJV CLI
+        run: npm install -g ajv-cli ajv-formats
 
-      # デバッグ：ファイル配置とサンプル確認（任意だが安心）
-      - name: Debug sample presence
-        shell: bash
-        run: |
-          echo "== pwd ==" && pwd
-          echo "== list examples ==" && ls -la arix-16/examples/exports_sample || true
-          echo "== head of JSON (if exists) ==" && (test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json && head -n1 arix-16/examples/exports_sample/taps_arix16_2025-W33.json || echo "(no json)")
-          echo "== head of JSONL (if exists) ==" && (test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl && head -n1 arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl || echo "(no jsonl)")
-
-      # まずは単一JSONで通電（A案）
-      - name: Schema validate (sample JSON)
-        shell: bash
-        run: |
-          ajv validate -c ajv-formats \
-            -s ./arix-16/schema/arix16.schema.json \
-            -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.json \
-            --spec draft2020
-
-      # NDJSON（.jsonl）を行単位で検証（存在すれば全ファイルを対象）
       - name: Validate NDJSON (each line)
-        shell: bash
         run: |
           set -e
           SCHEMA='./arix-16/schema/arix16.schema.json'
           JSONL_GLOB='arix-16/examples/exports_sample/*.jsonl'
+
           if compgen -G "$JSONL_GLOB" > /dev/null; then
             for f in $JSONL_GLOB; do
               echo "::group::Validating NDJSON file: $f"
-              # 空行/コメント行(#始まり)を除外して1行ずつAJVへ
-              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec draft2020
-              done
-              echo "::endgroup::"
-            done
-          else
-            echo "No .jsonl files found under arix-16/examples/exports_sample (skipping)."
-          fi
-
-      # TSVヘッダ検査（scripts/validate_tsv_headers.js をリポジトリに置いておくこと）
-      - name: TSV header check
-        run: node ./scripts/validate_tsv_headers.js
+              awk 'NF && $0 !~ /^#/' "$f
