@@ -34,9 +34,12 @@ jobs:
               LOG_FILE="$LOG_DIR/$(basename "$f").log"
               echo "::group::Validating NDJSON file: $f"
               echo "Validating file: $f" > "$LOG_FILE"
-              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-                echo "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec draft2020 >> "$LOG_FILE" 2>&1
-              done
+              # 1行ごとに処理、エラーを検出しやすく
+              awk 'NF && $0 !~ /^#/' "$f" > "$f.cleaned"
+              while IFS= read -r line; do
+                echo "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec draft2020 >> "$LOG_FILE" 2>&1 || echo "NG: $line" >> "$LOG_FILE"
+              done < "$f.cleaned"
+              rm "$f.cleaned"
               echo "::endgroup::"
             done
           else
