@@ -1,17 +1,21 @@
-name: ARIX Validate (MVP)
-on: [push, pull_request]
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - run: npm i -g ajv-cli ajv-formats
-      - name: Schema validate (sample JSONL)
-        run: |
-          ajv validate -c ajv-formats \
-            -s ./arix-16/schema/arix16.schema.json \
-            -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl \
-            --spec=draft2020
+"name": "ARIX Validate (MVP)"
+"on":
+  - "push"
+  - "pull_request"
+"jobs":
+  "validate":
+    "runs-on": "ubuntu-latest"
+    "steps":
+      - "uses": "actions/checkout@v4"
+      - "uses": "actions/setup-node@v4"
+        "with":
+          "node-version": 18
+      - "run": "npm i -g ajv-cli ajv-formats"
+      - "name": "Schema validate (sample JSON)"
+        "run": "ajv validate -c ajv-formats \\
+
+          \  -s ./arix-16/schema/arix16.schema.json \\
+
+          \  -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.json \\
+
+          \  --spec=draft2020\n"
