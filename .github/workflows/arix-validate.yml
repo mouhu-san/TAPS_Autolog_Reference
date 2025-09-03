@@ -58,7 +58,7 @@ jobs:
             echo "::endgroup::"
           done
 
-       必要なら draft-07 でも検証（任意）
+       # 必要なら draft-07 でも検証（任意）
        - name: Validate JSON (draft-07)
          run: |
            for f in $ALLOWED_JSON; do
