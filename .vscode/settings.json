@@ -1,7 +1,7 @@
 {
   // JSONL を JSON として扱う（赤線出せるようにする）
   "files.associations": {
-    "*.jsonl": "javascript"
+    "*.jsonl": "jsonl"
   },
 
   // JSON Schema をファイルパターンに関連付け（リアルタイム検証）
