@@ -30,6 +30,11 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Show Intent enum (debug)
+        run: |
+          echo 'Intent enum (draft2020 schema):'
+          jq -C '.properties.Intent.enum'arix-16/schema/arix16.schema.json || true
+
       - name: Install AJV CLI
         run: npm i -g ajv-cli ajv-formats
 
