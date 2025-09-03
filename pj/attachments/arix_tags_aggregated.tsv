@@ -1,0 +1,9 @@
+tag	count	desc	examples
+arix	1		A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16
+automation	1	自動化ルール	A16v1-TAPS-CANVAS-2025W35-PJ-automation-ci
+ci	1	継続的検証	A16v1-TAPS-CANVAS-2025W35-PJ-automation-ci
+daily	1		A16v1-TAPS-NOTE-2025W35-daily-log-01
+log	1		A16v1-TAPS-NOTE-2025W35-daily-log-01
+pj2	1		A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16
+pj8	1		A16v1-TAPS-CANVAS-2025W35-PJ-automation-ci
+spec	1	仕様・定義ドキュメント	A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16
