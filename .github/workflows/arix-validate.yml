@@ -1,5 +1,13 @@
 name: ARIX Validate
-on: [push, pull_request]
+
+on:
+  push:
+    paths:
+      - 'arix-16/**'
+      - 'pj/**'
+      - '.github/workflows/arix-validate.yml'
+      - 'scripts/**'
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -8,35 +16,49 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
 
-      - name: Install ajv
+      - name: Install AJV CLI
         run: npm i -g ajv-cli ajv-formats
 
-      # ★ ここが追加の存在確認ステップ
-      - name: Debug sample presence
+      - name: Debug sample presence (JSON/JSONL)
         run: |
-          echo "== pwd =="
-          pwd
-          echo "== repo tree (depth 3) =="
-          find . -maxdepth 3 -type d -print
-          echo "== list examples dir =="
+          ls -la arix-16 || true
+          ls -la arix-16/examples || true
           ls -la arix-16/examples/exports_sample || true
-          echo "== head of sample JSON (if exists) =="
-          if [ -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json ]; then
-            head -n1 arix-16/examples/exports_sample/taps_arix16_2025-W33.json
-          else
-            echo "(no json file yet)"
-          fi
-          echo "== presence test =="
-          test -f arix-16/examples/exports_sample/taps_arix16_2025-W33.json && echo "FOUND JSON" || (echo "MISSING JSON"; exit 2)
 
-      - name: Schema validate (sample JSON)
+      - name: Validate JSON (single-file samples)
         run: |
-          ajv validate -c ajv-formats \
-            -s ./arix-16/schema/arix16.schema.json \
-            -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.json \
-            --spec draft2020
+          set -e
+          SCHEMA='pj/attachments/arix16.schema.json'
+          for f in $(find arix-16 -type f -name '*.json' ! -name '*.jsonl' || true); do
+            echo "::group::Validate JSON: $f"
+            ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020 || exit 2
+            echo "::endgroup::"
+          done
+
+      - name: Validate NDJSON (line-by-line)
+        shell: bash
+        run: |
+          set -e
+          SCHEMA='pj/attachments/arix16.schema.json'
+          mapfile -t files < <(find arix-16 -type f -name '*.jsonl' || true)
+          if [ ${#files[@]} -gt 0 ]; then
+            for f in "${files[@]}"; do
+              echo "::group::Validate JSONL: $f"
+              # 空行/コメント(#)を除外して1行ずつ検証
+              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
+                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec=draft2020 || exit 2
+              done
+              echo "::endgroup::"
+            done
+          else
+            echo "⚠️ No .jsonl files found (skipping)."
+          fi
+
+      - name: Validate TSV headers
+        run: |
+          node scripts/validate_tsv_headers.js

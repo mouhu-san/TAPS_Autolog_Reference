@@ -1,0 +1,7 @@
+{
+  "$id": "arix16.id.schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ARIX-16 Identifier (string) — minimal pattern",
+  "type": "string",
+  "pattern": "^A16v[0-9]+-[A-Za-z0-9_-]+(?:-[A-Za-z0-9_-]+){5,}$"
+}

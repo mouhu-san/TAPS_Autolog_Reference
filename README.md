@@ -85,7 +85,7 @@ TAPS_Autolog_Reference/
 - 戦略方針 → [`strategy/TAPS_指針.md`](./strategy/TAPS_指針.md)
 - 実装進行 → [`progress/TAPS_Project_Progress_and_Policy.md`](./progress/TAPS_Project_Progress_and_Policy.md)
 - 哲学宣言 → [`philosophy/TAPS_core_Manifesto.md`](./philosophy/TAPS_core_Manifesto.md)
-
+- タキオンとの取り決め → [PJ: README（概要＆リンク集・現在地）](pj/pj1_project_readme.md)
 ---
 
 ## 👤 制作者について
