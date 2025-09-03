@@ -1,11 +1,11 @@
-name: ARIX Validate
+name: ARIX Validate (JSON/JSONL + optional TSV)
+
 on:
   push:
     paths:
       - 'arix-16/schema/**'
       - 'arix-16/examples/**'
-      - 'arix-16/config/**'
-      - 'scripts/ajv_check.mjs'
+      - '.github/workflows/arix-validate.yml'
   workflow_dispatch:
 
 jobs:
@@ -15,21 +15,68 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install deps
-        run: npm i -g ajv ajv-cli ajv-formats
+      - name: Install ajv-cli
+        run: npm i -g ajv-cli ajv-formats
 
-      - name: Debug sample presence
+      - name: Debug tree
         run: |
+          echo "== ls -R arix-16 =="
+          ls -la arix-16 || true
+          echo
+          echo "== ls -R examples =="
+          ls -la arix-16/examples || true
           ls -la arix-16/examples/exports_sample || true
 
-      - name: Validate with config (JSON/JSONL両対応)
+      - name: Validate JSON samples
         run: |
-          node scripts/ajv_check.mjs \
-            --schema ./arix-16/schema/arix16.schema.json \
-            --data   ./arix-16/examples/exports_sample \
-            --config ./arix-16/config/ajv_config.json
+          set -e
+          SCHEMA='./arix-16/schema/arix16.schema.json'
+          JSON_GLOB='arix-16/examples/exports_sample/*.json'
+          if compgen -G "$JSON_GLOB" > /dev/null; then
+            for f in $JSON_GLOB; do
+              echo "::group::JSON: $f"
+              ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020 --all-errors
+              echo "::endgroup::"
+            done
+          else
+            echo "ℹ️ No .json files under arix-16/examples/exports_sample (skipping)."
+          fi
+
+      - name: Validate JSONL (NDJSON) line-by-line
+        run: |
+          set -e
+          SCHEMA='./arix-16/schema/arix16.schema.json'
+          JSONL_GLOB='arix-16/examples/exports_sample/*.jsonl'
+          if compgen -G "$JSONL_GLOB" > /dev/null; then
+            for f in $JSONL_GLOB; do
+              echo "::group::JSONL: $f"
+              i=0; ec=0
+              while IFS= read -r line || [ -n "$line" ]; do
+                i=$((i+1))
+                # 空行と先頭#のコメント行はスキップ
+                if [ -z "$line" ] || echo "$line" | grep -qE '^\s*#'; then continue; fi
+                if ! printf '%s' "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec=draft2020 --all-errors > /dev/null 2> err.txt; then
+                  echo "::error file=$f,line=$i::$(tr '\n' ' | ' < err.txt)"
+                  ec=1
+                fi
+              done < "$f"
+              rm -f err.txt
+              echo "::endgroup::"
+              test $ec -eq 0
+            done
+          else
+            echo "ℹ️ No .jsonl files under arix-16/examples/exports_sample (skipping)."
+          fi
+
+      - name: Optional TSV header check
+        run: |
+          if [ -f scripts/validate_tsv_headers.js ]; then
+            node scripts/validate_tsv_headers.js
+          else
+            echo "ℹ️ scripts/validate_tsv_headers.js not found (skipping)."
+          fi
