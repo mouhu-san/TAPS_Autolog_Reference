@@ -1,4 +1,4 @@
-arix_id,tag_key,tag_value
-A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16-final-2025-09-03-AT-S01-v1-memo,domain,spec
-A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16-final-2025-09-03-AT-S01-v1-memo,priority,high
-A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16-final-2025-09-03-AT-S01-v1-memo,owner,DK
+tag,desc
+spec,仕様・定義ドキュメント
+ci,継続的検証
+automation,自動化ルール

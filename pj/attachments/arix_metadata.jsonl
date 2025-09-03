@@ -1,1 +1,3 @@
-{"arix_id": "A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16-final-2025-09-03-AT-S01-v1-memo", "aliases": ["pj2_arix_spec"], "links": ["https://github.com/mouhu-san/TAPS_Autolog_Reference"], "owner": "DK", "summary": "ARIX-16 仕様本文の参照メタ（UI表示はARIX-16、主キーはUUID）", "created_at": "2025-09-03T10:20:00+09:00"}
+{"arix_id": "A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16", "title": "ARIX spec draft", "tags": ["spec", "arix", "pj2"]}
+{"arix_id": "A16v1-TAPS-CANVAS-2025W35-PJ-automation-ci", "title": "CI config", "tags": ["ci", "automation", "pj8"]}
+{"arix_id": "A16v1-TAPS-NOTE-2025W35-daily-log-01", "title": "daily note", "tags": ["log", "daily"]}
