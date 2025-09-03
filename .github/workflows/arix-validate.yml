@@ -1,75 +1,35 @@
-name: ARIX-16 Validate
-
+name: ARIX Validate
 on:
   push:
     paths:
-      - 'arix-16/**'
-      - 'scripts/**'
-      - '.github/workflows/arix-16_validate.yml'
+      - 'arix-16/schema/**'
+      - 'arix-16/examples/**'
+      - 'arix-16/config/**'
+      - 'scripts/ajv_check.mjs'
   workflow_dispatch:
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install AJV CLI
-        run: npm i -g ajv-cli ajv-formats
+      - name: Install deps
+        run: npm i -g ajv ajv-cli ajv-formats
 
       - name: Debug sample presence
         run: |
-          echo "== List samples =="
           ls -la arix-16/examples/exports_sample || true
-          echo "== List schema =="
-          ls -la arix-16/schema || true
 
-      - name: Schema validate (JSON samples)
+      - name: Validate with config (JSON/JSONL両対応)
         run: |
-          set -e
-          SCHEMA="arix-16/schema/arix16.schema.json"
-          JSON_GLOB="arix-16/examples/exports_sample/*.json"
-          if compgen -G "$JSON_GLOB" > /dev/null; then
-            for f in $JSON_GLOB; do
-              echo "::group::Validating JSON: $f"
-              ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020
-              echo "::endgroup::"
-            done
-          else
-            echo "⚠️ No .json files under arix-16/examples/exports_sample (skipping JSON validation)."
-          fi
-
-      - name: Schema validate (NDJSON .jsonl line-by-line)
-        run: |
-          set -e
-          SCHEMA="arix-16/schema/arix16.schema.json"
-          JSONL_GLOB="arix-16/examples/exports_sample/*.jsonl"
-          if compgen -G "$JSONL_GLOB" > /dev/null; then
-            for f in $JSONL_GLOB; do
-              echo "::group::Validating NDJSON: $f"
-              # 空行・#始まりを除外しつつ1行ずつ AJV に流す（クォート閉じは厳密）
-              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-                printf '%s' "$line" \
-                  | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec=draft2020 \
-                  || { echo "::error file=$f::NDJSON line failed"; exit 1; }
-              done
-              echo "::endgroup::"
-            done
-          else
-            echo "⚠️ No .jsonl files under arix-16/examples/exports_sample (skipping NDJSON validation)."
-          fi
-
-      - name: TSV header check (optional, auto-skip if script missing)
-        run: |
-          if [ -f scripts/validate_tsv_headers.js ]; then
-            node scripts/validate_tsv_headers.js
-          else
-            echo "ℹ️ scripts/validate_tsv_headers.js not found, skipping TSV header check."
-          fi
+          node scripts/ajv_check.mjs \
+            --schema ./arix-16/schema/arix16.schema.json \
+            --data   ./arix-16/examples/exports_sample \
+            --config ./arix-16/config/ajv_config.json
