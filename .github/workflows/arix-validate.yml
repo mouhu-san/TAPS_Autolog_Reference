@@ -58,13 +58,13 @@ jobs:
             echo "::endgroup::"
           done
 
-      # 必要なら draft-07 でも検証（任意）
-      # - name: Validate JSON (draft-07)
-      #   run: |
-      #     for f in $ALLOWED_JSON; do
-      #       [ -f "$f" ] || continue
-      #       ajv validate -c ajv-formats --spec=draft7 -s "$SCHEMA_07" -d "$f"
-      #     done
+       必要なら draft-07 でも検証（任意）
+       - name: Validate JSON (draft-07)
+         run: |
+           for f in $ALLOWED_JSON; do
+             [ -f "$f" ] || continue
+             ajv validate -c ajv-formats --spec=draft7 -s "$SCHEMA_07" -d "$f"
+           done
 
       - name: Validate NDJSON (each line, draft2020-12)
         shell: bash
