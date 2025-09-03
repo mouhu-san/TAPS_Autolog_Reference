@@ -35,11 +35,14 @@ jobs:
             -s arix-16/schema/arix16.schema.json \
             -d arix-16/examples/exports_sample/taps_arix16_min.json
 
-      # draft-07 用（互換）
-      - name: Schema validate (NDJSON, draft7)
-        run: |
-          SCHEMA='arix-16/schema/arix16.schema.draft-07.json'
-          FILE='arix-16/examples/exports_sample/taps_arix16_min.jsonl'
-          awk 'NF && $0 !~ /^#/' "$FILE" | while IFS= read -r line; do
-            printf '%s' "$line" | ajv validate -c ajv-formats --spec=draft7 -s "$SCHEMA" -d -
-          done
+- name: Schema validate (NDJSON, draft7)
+  run: |
+    SCHEMA='arix-16/schema/arix16.schema.draft-07.json'
+    FILES='arix-16/examples/exports_sample/taps_arix16_min.jsonl'
+    for f in $FILES; do
+      echo "::group::Validating $f"
+      awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
+        printf '%s' "$line" | ajv validate -c ajv-formats --spec=draft7 -s "$SCHEMA" -d -
+      done
+      echo "::endgroup::"
+    done
