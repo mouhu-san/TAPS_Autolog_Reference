@@ -1,14 +1,28 @@
-name: ARIX Validate
+name: ARIX Validate (allowlist)
+
 on:
   push:
     paths:
       - 'arix-16/schema/**'
       - 'arix-16/examples/**'
+      - '.github/workflows/arix-validate.yml'
   workflow_dispatch:
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      # スキーマ（必要なら片方だけ使ってOK）
+      SCHEMA_2020: arix-16/schema/arix16.schema.json
+      SCHEMA_07:   arix-16/schema/arix16.schema.draft-07.json
+
+      # ✅ 許可リスト（検証対象にする最小サンプルだけを列挙）
+      ALLOWED_JSON:  arix-16/examples/exports_sample/taps_arix16_min.json
+      ALLOWED_JSONL: arix-16/examples/exports_sample/taps_arix16_min.jsonl
+      # 例）複数ある場合はスペース区切りで追加
+      # ALLOWED_JSON:  "path/A.json path/B.json"
+      # ALLOWED_JSONL: "path/A.jsonl path/B.jsonl"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,28 +35,46 @@ jobs:
       - name: Install AJV CLI
         run: npm i -g ajv-cli ajv-formats
 
-      - name: Debug sample presence
+      - name: Debug allowlist presence
         run: |
-          ls -la arix-16/examples/exports_sample || true
-          test -f arix-16/examples/exports_sample/taps_arix16_min.json    && echo "FOUND JSON"  || (echo "MISSING JSON";  exit 2)
-          test -f arix-16/examples/exports_sample/taps_arix16_min.jsonl  && echo "FOUND JSONL" || (echo "MISSING JSONL"; exit 2)
+          echo "JSON allowlist:  $ALLOWED_JSON"
+          echo "JSONL allowlist: $ALLOWED_JSONL"
+          for f in $ALLOWED_JSON $ALLOWED_JSONL; do
+            if [ -n "$f" ]; then
+              if [ -f "$f" ]; then
+                echo "FOUND: $f"
+              else
+                echo "MISSING: $f" && exit 2
+              fi
+            fi
+          done
 
-      # draft-2020 用（メイン）
-      - name: Schema validate (JSON, draft2020)
+      - name: Validate JSON (draft2020-12)
         run: |
-          ajv validate -c ajv-formats \
-            --spec=draft2020 \
-            -s arix-16/schema/arix16.schema.json \
-            -d arix-16/examples/exports_sample/taps_arix16_min.json
+          for f in $ALLOWED_JSON; do
+            [ -f "$f" ] || continue
+            echo "::group::Validating JSON: $f"
+            ajv validate -c ajv-formats --spec=draft2020 -s "$SCHEMA_2020" -d "$f"
+            echo "::endgroup::"
+          done
 
-- name: Schema validate (NDJSON, draft7)
-  run: |
-    SCHEMA='arix-16/schema/arix16.schema.draft-07.json'
-    FILES='arix-16/examples/exports_sample/taps_arix16_min.jsonl'
-    for f in $FILES; do
-      echo "::group::Validating $f"
-      awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-        printf '%s' "$line" | ajv validate -c ajv-formats --spec=draft7 -s "$SCHEMA" -d -
-      done
-      echo "::endgroup::"
-    done
+      # 必要なら draft-07 でも検証（任意）
+      # - name: Validate JSON (draft-07)
+      #   run: |
+      #     for f in $ALLOWED_JSON; do
+      #       [ -f "$f" ] || continue
+      #       ajv validate -c ajv-formats --spec=draft7 -s "$SCHEMA_07" -d "$f"
+      #     done
+
+      - name: Validate NDJSON (each line, draft2020-12)
+        shell: bash
+        run: |
+          for f in $ALLOWED_JSONL; do
+            [ -f "$f" ] || continue
+            echo "::group::Validating NDJSON: $f"
+            # 空行と '#' 始まりを除外して1行ずつ検証
+            awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
+              printf '%s' "$line" | ajv validate -c ajv-formats --spec=draft2020 -s "$SCHEMA_2020" -d -
+            done
+            echo "::endgroup::"
+          done
