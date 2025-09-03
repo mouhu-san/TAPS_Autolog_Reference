@@ -78,3 +78,10 @@ jobs:
             done
             echo "::endgroup::"
           done
+
+- name: Show schema.required (debug)
+  if: always()
+  run: |
+    command -v jq >/dev/null 2>&1 || sudo apt-get update && sudo apt-get install -y jq
+    echo "required keys (draft2020):"
+    jq -r '.required // [] | join(", ")' "$SCHEMA_2020"
