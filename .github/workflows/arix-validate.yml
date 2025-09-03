@@ -45,12 +45,21 @@ jobs:
               # find files under each allowed directory
               while IFS= read -r -d '' f; do
                 echo "::group::Validate JSON: $f"
-                # quick parse check with node to skip non-JSON/JSONC/empty files
-                if ! node -e "try{JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));}catch(e){process.exit(1)}" "$f"; then
-                  echo "⚠️ Skipping (not valid JSON): $f"
+                # quick heuristic: skip empty or clearly non-JSON files by checking first non-space char
+                first_char=$(awk 'match($0, /[^[:space:]]/){print substr($0,RSTART,1); exit}' "$f" || true)
+                if [ -z "$first_char" ]; then
+                  echo "⚠️ Skipping (empty file): $f"
                   echo "::endgroup::"
                   continue
                 fi
+                case "$first_char" in
+                  '{'|'['|'"') ;; # likely JSON object/array/string - attempt validation
+                  *)
+                    echo "⚠️ Skipping (not JSON-like): $f"
+                    echo "::endgroup::"
+                    continue
+                    ;;
+                esac
                 ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020 || exit 2
                 echo "::endgroup::"
               done < <(find "$d" -type f -name '*.json' ! -name '*.jsonl' -print0 || true)
