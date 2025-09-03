@@ -1,6 +1,5 @@
 # 📘 TAPS_Autolog_Reference
-[![ARIX Validate](https://github.com/mouhu-san/taps_autolog_reference/actions/workflows/arix-validate.yml/badge.svg)](https://github.com/mouhu-san/taps_autolog_reference/actions/workflows/arix-validate.yml)
-
+![Workflow Status](https://github.com/mouhu-san/TAPS_Autolog_Reference/actions/workflows/arix-validate.yml/badge.svg)
 このリポジトリは、T.A.P.S.（Total Archive & Processing System）の中核を担う  
 **記録・分類・同期構造の参照実装**を保存・共有するためのリファレンスアーカイブである。
 
