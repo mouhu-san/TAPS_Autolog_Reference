@@ -1,43 +1,28 @@
-// Simple TSV header validator for pj attachments.
-// Add files + expected headers here.
+// Simple TSV header validator for ARIX templates
+// expected map: file path => required headers (tab-separated)
 const fs = require('fs');
-
-const targets = [
-  {
-    path: 'pj/attachments/arix_id_to_uuid_map.tsv',
-    headers: ['arix_id','uuid','source','created_at','updated_at','notes']
-  },
-  {
-    path: 'pj/pj_index.tsv',
-    optional: true,
-    headers: ['pj_id','title_canvas','title_md','file_relpath','canvas_name','status','last_updated']
-  }
+const checks = [
+  { file: 'templates/trigger_classification_template.tsv',
+    headers: ['trigger','category','action','priority','note'] },
+  { file: 'hooks/memory_hooks_template.tsv',
+    headers: ['hook','pattern','category','target','note'] }
 ];
 
-let failed = false;
-
-for (const t of targets) {
-  if (!fs.existsSync(t.path)) {
-    if (t.optional) {
-      console.log(`ℹ️ skip (optional not found): ${t.path}`);
-      continue;
-    } else {
-      console.error(`❌ missing required file: ${t.path}`);
-      failed = true;
-      continue;
-    }
+let failed = 0;
+for (const c of checks) {
+  if (!fs.existsSync(c.file)) {
+    console.log(`ℹ️ Skip: ${c.file} not found`);
+    continue;
   }
-  const firstLine = fs.readFileSync(t.path, 'utf8').split(/\r?\n/)[0].trim();
+  const firstLine = fs.readFileSync(c.file, 'utf8').split(/\r?\n/)[0].trim();
   const got = firstLine.split('\t');
-  const want = t.headers;
-  const ok = want.every((h,i)=> got[i] === h);
+  const need = c.headers;
+  const ok = need.every((h, i) => got[i] === h);
   if (!ok) {
-    console.error(`❌ header mismatch: ${t.path}\n  expected: ${want.join('\t')}\n  got     : ${got.join('\t')}`);
-    failed = true;
+    console.error(`❌ Header mismatch in ${c.file}\n got: ${got.join('|')}\nneed: ${need.join('|')}`);
+    failed++;
   } else {
-    console.log(`✅ header ok: ${t.path}`);
+    console.log(`✅ Header OK: ${c.file}`);
   }
 }
-
-if (failed) process.exit(2);
-console.log('🎉 TSV header validation passed');
+if (failed) process.exit(1);
