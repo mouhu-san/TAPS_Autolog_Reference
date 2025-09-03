@@ -1,20 +1,20 @@
-name: ARIX Validate
+name: ARIX Validate (allowlist + required + jq normalize)
 
 on:
   push:
     paths:
-      - 'arix-16/schema/**'
-      - 'arix-16/examples/**'
-      - '.github/workflows/arix_validate.yml'
+      - "arix-16/schema/**"
+      - "arix-16/examples/exports_sample/**"
+      - ".github/workflows/arix-validate.yml"
   workflow_dispatch:
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     env:
       SCHEMA_2020: arix-16/schema/arix16.schema.json
       SCHEMA_07:   arix-16/schema/arix16.schema.draft-07.json
+      # 許可リスト（必要に応じて追記）
       ALLOWED_JSON:  arix-16/examples/exports_sample/taps_arix16_min.json
       ALLOWED_JSONL: arix-16/examples/exports_sample/taps_arix16_min.jsonl
 
@@ -22,23 +22,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
-      - name: Install CLIs
+      - name: Install AJV CLI
         run: |
           npm i -g ajv-cli ajv-formats
-          sudo apt-get update -y
-          sudo apt-get install -y jq
+          ajv --version
 
-      - name: Normalize line endings (CRLF -> LF)
-        run: |
-          # 例示ディレクトリ配下の .json/.jsonl/.tsv をLF化
-          find arix-16/examples -type f \( -name '*.json' -o -name '*.jsonl' -o -name '*.tsv' \) \
-            -exec perl -i -pe 's/\r$//' {} \;
-
+      # デバッグ：スキーマ上の enum 可視化
       - name: Show schema enums (Intent / TopicTag)
         run: |
           echo "---- Intent enum ----"
@@ -46,7 +40,22 @@ jobs:
           echo "---- TopicTag enum ----"
           jq -r '.properties.TopicTag.enum // []' "$SCHEMA_2020"
 
-      - name: Validate JSON (min sample)
+      # デバッグ：許可ファイルの存在確認
+      - name: Debug allowlist presence
+        run: |
+          ls -la arix-16/examples/exports_sample || true
+          for f in $ALLOWED_JSON $ALLOWED_JSONL; do
+            [ -f "$f" ] && echo "FOUND: $f" || echo "MISSING: $f"
+          done
+
+      # デバッグ：必須キーの一覧（見える化）
+      - name: Show required keys (draft2020-12)
+        run: |
+          echo "---- required keys ----"
+          jq -r '.required[]?' "$SCHEMA_2020" || true
+
+      # 単一 JSON の検証（すべてのエラーを表示）
+      - name: Validate JSON (draft2020-12, show all errors)
         run: |
           set -e
           for f in $ALLOWED_JSON; do
@@ -57,24 +66,33 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Validate NDJSON (min sample, each line)
+      # NDJSON を jq で正規化してから AJV へ
+      - name: Validate NDJSON (each line, draft2020-12, show all errors)
         run: |
           set -e
           for f in $ALLOWED_JSONL; do
             [ -f "$f" ] || continue
             echo "::group::Validating NDJSON: $f"
-            # 空行 / '#'始まりを除外し、1行ずつ一時ファイルに書いて検証
+            # 空行 / '#'始まりを除外し、1行ずつ処理
             awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
               tmp="$(mktemp)"
-              printf '%s' "$line" > "$tmp"
+              # BOM/CR 除去 → jq で厳密パース（失敗時は即 NG 行を表示して終了）
+              printf '%s' "$line" \
+                | perl -pe 's/^\x{FEFF}//; s/\r$//' \
+                | jq -c . > "$tmp" \
+                || { echo "❌ jq parse failed (line shown below)"; echo "$line"; rm -f "$tmp"; exit 2; }
+              # AJV 検証
               ajv validate -c ajv-formats --spec=draft2020 --all-errors --errors=text \
-                -s "$SCHEMA_2020" -d "$tmp" || { echo "❌ invalid line: $line"; rm -f "$tmp"; exit 2; }
+                -s "$SCHEMA_2020" -d "$tmp" \
+                || { echo "❌ AJV invalid (line shown below)"; echo "$line"; rm -f "$tmp"; exit 2; }
               rm -f "$tmp"
             done
             echo "::endgroup::"
           done
 
-      - name: Debug list examples
+      # 失敗時の直近ログを最後に 1 行だけ出す（デバッグ補助）
+      - name: Tail workflow log (on failure)
+        if: failure()
         run: |
-          echo "--- examples/exports_sample ---"
-          ls -la arix-16/examples/exports_sample || true
+          echo "---- tail of runner log (grep ajv/jq) ----"
+          grep -E "ajv|jq|invalid|parse failed" -n $GITHUB_STEP_SUMMARY || true
