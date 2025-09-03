@@ -1,23 +1,20 @@
-name: ARIX Validate (allowlist + required-keys + all-errors)
+name: ARIX Validate
 
 on:
   push:
     paths:
       - 'arix-16/schema/**'
       - 'arix-16/examples/**'
-      - '.github/workflows/arix-validate.yml'
+      - '.github/workflows/arix_validate.yml'
   workflow_dispatch:
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+
     env:
-      # ===== Schemas =====
       SCHEMA_2020: arix-16/schema/arix16.schema.json
       SCHEMA_07:   arix-16/schema/arix16.schema.draft-07.json
-
-      # ===== Allowlist (検証対象にする最小サンプル“だけ”を列挙) =====
-      # スペース区切りで複数指定可。存在しないと失敗します。
       ALLOWED_JSON:  arix-16/examples/exports_sample/taps_arix16_min.json
       ALLOWED_JSONL: arix-16/examples/exports_sample/taps_arix16_min.jsonl
 
@@ -25,44 +22,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Show Intent enum (debug)
+      - name: Install CLIs
         run: |
-          echo 'Intent enum (draft2020 schema):'
-          jq -C '.properties.Intent.enum'arix-16/schema/arix16.schema.json || true
+          npm i -g ajv-cli ajv-formats
+          sudo apt-get update -y
+          sudo apt-get install -y jq
 
-      - name: Install AJV CLI
-        run: npm i -g ajv-cli ajv-formats
-
-      - name: Debug allowlist presence
+      - name: Normalize line endings (CRLF -> LF)
         run: |
-          echo "JSON allowlist:  $ALLOWED_JSON"
-          echo "JSONL allowlist: $ALLOWED_JSONL"
-          for f in $ALLOWED_JSON $ALLOWED_JSONL; do
-            [ -z "$f" ] && continue
-            if [ -f "$f" ]; then
-              echo "FOUND: $f"
-            else
-              echo "MISSING: $f"; exit 2
-            fi
-          done
+          # 例示ディレクトリ配下の .json/.jsonl/.tsv をLF化
+          find arix-16/examples -type f \( -name '*.json' -o -name '*.jsonl' -o -name '*.tsv' \) \
+            -exec perl -i -pe 's/\r$//' {} \;
 
-      - name: Show required keys (draft2020-12)
+      - name: Show schema enums (Intent / TopicTag)
         run: |
-          set -e
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update && sudo apt-get install -y jq
-          fi
-          echo "=== required keys (root-level) ==="
-          jq -r '.required // [] | join(", ")' "$SCHEMA_2020"
-          echo "=== all nested required occurrences (debug) ==="
-          jq -r '.. | select(type=="object" and has("required")) | .required | join(", ")' "$SCHEMA_2020" | sort -u
+          echo "---- Intent enum ----"
+          jq -r '.properties.Intent.enum // []' "$SCHEMA_2020"
+          echo "---- TopicTag enum ----"
+          jq -r '.properties.TopicTag.enum // []' "$SCHEMA_2020"
 
-      - name: Validate JSON (draft2020-12, show all errors)
+      - name: Validate JSON (min sample)
         run: |
           set -e
           for f in $ALLOWED_JSON; do
@@ -73,29 +57,24 @@ jobs:
             echo "::endgroup::"
           done
 
-      # （必要なら）draft-07 でも検証したい場合は下のコメントを外す
-      # - name: Validate JSON (draft-07, show all errors)
-      #   run: |
-      #     set -e
-      #     for f in $ALLOWED_JSON; do
-      #       [ -f "$f" ] || continue
-      #       echo "::group::Validating JSON (draft-07): $f"
-      #       ajv validate -c ajv-formats --spec=draft7 --all-errors --errors=text \
-      #         -s "$SCHEMA_07" -d "$f"
-      #       echo "::endgroup::"
-      #     done
-
-      - name: Validate NDJSON (each line, draft2020-12, show all errors)
-        shell: bash
+      - name: Validate NDJSON (min sample, each line)
         run: |
           set -e
           for f in $ALLOWED_JSONL; do
             [ -f "$f" ] || continue
             echo "::group::Validating NDJSON: $f"
-            # 空行と '#' 始まりを除外しつつ1行ずつ検証
+            # 空行 / '#'始まりを除外し、1行ずつ一時ファイルに書いて検証
             awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-              printf '%s' "$line" | ajv validate -c ajv-formats --spec=draft2020 --all-errors --errors=text \
-                -s "$SCHEMA_2020" -d -
+              tmp="$(mktemp)"
+              printf '%s' "$line" > "$tmp"
+              ajv validate -c ajv-formats --spec=draft2020 --all-errors --errors=text \
+                -s "$SCHEMA_2020" -d "$tmp" || { echo "❌ invalid line: $line"; rm -f "$tmp"; exit 2; }
+              rm -f "$tmp"
             done
             echo "::endgroup::"
           done
+
+      - name: Debug list examples
+        run: |
+          echo "--- examples/exports_sample ---"
+          ls -la arix-16/examples/exports_sample || true
