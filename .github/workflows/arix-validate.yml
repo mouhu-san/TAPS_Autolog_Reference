@@ -32,7 +32,7 @@ jobs:
       - name: Validate JSON (single-file samples)
         run: |
           set -euo pipefail
-          SCHEMA='pj/attachments/arix16.schema.json'
+          SCHEMA='arix-16/schema/arix16.schema.json'
           # Allow-list: only validate JSON files in these directories
           dirs=(
             "arix-16/examples"
@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          SCHEMA='pj/attachments/arix16.schema.json'
+          SCHEMA='arix-16/schema/arix16.schema.json'
           mapfile -t files < <(find arix-16 -type f -name '*.jsonl' || true)
           if [ ${#files[@]} -gt 0 ]; then
             for f in "${files[@]}"; do
