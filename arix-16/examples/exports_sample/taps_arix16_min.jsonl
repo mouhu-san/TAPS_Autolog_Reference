@@ -1,1 +1,1 @@
-{"UID":"TAPS-2025-09-03-001","Timestamp":"2025-09-03T07:45:00Z","Speaker":"user","TopicTag":"general","Intent":"note","ThreadRoot":true,"RawExcerpt":"validation smoke test"}
+{"UID":"TAPS-2025-09-03-001","Timestamp":"2025-09-03T07:47:00Z","Speaker":"user","TopicTag":"setup","Intent":"log","ThreadRoot":"TAPS-2025-09-03-001","RawExcerpt":"ARIX-16 minimal record for schema validation."}
