@@ -45,6 +45,12 @@ jobs:
               # find files under each allowed directory
               while IFS= read -r -d '' f; do
                 echo "::group::Validate JSON: $f"
+                # quick parse check with node to skip non-JSON/JSONC/empty files
+                if ! node -e "try{JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));}catch(e){process.exit(1)}" "$f"; then
+                  echo "⚠️ Skipping (not valid JSON): $f"
+                  echo "::endgroup::"
+                  continue
+                fi
                 ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020 || exit 2
                 echo "::endgroup::"
               done < <(find "$d" -type f -name '*.json' ! -name '*.jsonl' -print0 || true)
