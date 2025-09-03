@@ -1,3 +1,9 @@
 {
-  "UID": "A16v1-TAPS-CANVAS-2025-09-03-0001"
+  "UID": "TAPS-2025-09-03-001",
+  "Timestamp": "2025-09-03T07:45:00Z",
+  "Speaker": "user",
+  "TopicTag": "general",
+  "Intent": "note",
+  "ThreadRoot": true,
+  "RawExcerpt": "validation smoke test"
 }
