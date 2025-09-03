@@ -32,13 +32,15 @@
 
           SCHEMA='pj/attachments/arix16.schema.json'
 
-          for f in $(find arix-16 -type f -name '*.json' ! -name '*.jsonl' ||
-          true); do
+          # NOTE: Exclude AJV config file because schema expects a string, while ajv_config.json is an object
+          for f in $(find arix-16 -type f -name '*.json' ! -name '*.jsonl' \
+            -not -path 'arix-16/tools/ajv_config.json' \
+            -not -path 'arix-16/config/ajv.config.json' \
+            -not -path 'arix-16/config/ajv_config.json' || true); do
 
           \  echo \"::group::Validate JSON: $f\"
 
-          \  ajv validate -c ajv-formats -s \"$SCHEMA\" -d \"$f\"
-          --spec=draft2020 || exit 2
+          \  ajv validate -c ajv-formats -s \"$SCHEMA\" -d \"$f\" --spec=draft2020 || exit 2
 
           \  echo \"::endgroup::\"
 
