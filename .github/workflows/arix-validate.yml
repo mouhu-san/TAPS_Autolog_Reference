@@ -1,4 +1,4 @@
-name: ARIX Validate (allowlist)
+name: ARIX Validate (allowlist + required-keys + all-errors)
 
 on:
   push:
@@ -12,16 +12,14 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     env:
-      # スキーマ（必要なら片方だけ使ってOK）
+      # ===== Schemas =====
       SCHEMA_2020: arix-16/schema/arix16.schema.json
       SCHEMA_07:   arix-16/schema/arix16.schema.draft-07.json
 
-      # ✅ 許可リスト（検証対象にする最小サンプルだけを列挙）
+      # ===== Allowlist (検証対象にする最小サンプル“だけ”を列挙) =====
+      # スペース区切りで複数指定可。存在しないと失敗します。
       ALLOWED_JSON:  arix-16/examples/exports_sample/taps_arix16_min.json
       ALLOWED_JSONL: arix-16/examples/exports_sample/taps_arix16_min.jsonl
-      # 例）複数ある場合はスペース区切りで追加
-      # ALLOWED_JSON:  "path/A.json path/B.json"
-      # ALLOWED_JSONL: "path/A.jsonl path/B.jsonl"
 
     steps:
       - name: Checkout
@@ -40,48 +38,59 @@ jobs:
           echo "JSON allowlist:  $ALLOWED_JSON"
           echo "JSONL allowlist: $ALLOWED_JSONL"
           for f in $ALLOWED_JSON $ALLOWED_JSONL; do
-            if [ -n "$f" ]; then
-              if [ -f "$f" ]; then
-                echo "FOUND: $f"
-              else
-                echo "MISSING: $f" && exit 2
-              fi
+            [ -z "$f" ] && continue
+            if [ -f "$f" ]; then
+              echo "FOUND: $f"
+            else
+              echo "MISSING: $f"; exit 2
             fi
           done
 
-      - name: Validate JSON (draft2020-12)
+      - name: Show required keys (draft2020-12)
         run: |
+          set -e
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+          echo "=== required keys (root-level) ==="
+          jq -r '.required // [] | join(", ")' "$SCHEMA_2020"
+          echo "=== all nested required occurrences (debug) ==="
+          jq -r '.. | select(type=="object" and has("required")) | .required | join(", ")' "$SCHEMA_2020" | sort -u
+
+      - name: Validate JSON (draft2020-12, show all errors)
+        run: |
+          set -e
           for f in $ALLOWED_JSON; do
             [ -f "$f" ] || continue
             echo "::group::Validating JSON: $f"
-            ajv validate -c ajv-formats --spec=draft2020 -s "$SCHEMA_2020" -d "$f"
+            ajv validate -c ajv-formats --spec=draft2020 --all-errors --errors=text \
+              -s "$SCHEMA_2020" -d "$f"
             echo "::endgroup::"
           done
 
-       # 必要なら draft-07 でも検証（任意）
-       - name: Validate JSON (draft-07)
-         run: |
-           for f in $ALLOWED_JSON; do
-             [ -f "$f" ] || continue
-             ajv validate -c ajv-formats --spec=draft7 -s "$SCHEMA_07" -d "$f"
-           done
+      # （必要なら）draft-07 でも検証したい場合は下のコメントを外す
+      # - name: Validate JSON (draft-07, show all errors)
+      #   run: |
+      #     set -e
+      #     for f in $ALLOWED_JSON; do
+      #       [ -f "$f" ] || continue
+      #       echo "::group::Validating JSON (draft-07): $f"
+      #       ajv validate -c ajv-formats --spec=draft7 --all-errors --errors=text \
+      #         -s "$SCHEMA_07" -d "$f"
+      #       echo "::endgroup::"
+      #     done
 
-      - name: Validate NDJSON (each line, draft2020-12)
+      - name: Validate NDJSON (each line, draft2020-12, show all errors)
         shell: bash
         run: |
+          set -e
           for f in $ALLOWED_JSONL; do
             [ -f "$f" ] || continue
             echo "::group::Validating NDJSON: $f"
-            # 空行と '#' 始まりを除外して1行ずつ検証
+            # 空行と '#' 始まりを除外しつつ1行ずつ検証
             awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-              printf '%s' "$line" | ajv validate -c ajv-formats --spec=draft2020 -s "$SCHEMA_2020" -d -
+              printf '%s' "$line" | ajv validate -c ajv-formats --spec=draft2020 --all-errors --errors=text \
+                -s "$SCHEMA_2020" -d -
             done
             echo "::endgroup::"
           done
-
-- name: Show schema.required (debug)
-  if: always()
-  run: |
-    command -v jq >/dev/null 2>&1 || sudo apt-get update && sudo apt-get install -y jq
-    echo "required keys (draft2020):"
-    jq -r '.required // [] | join(", ")' "$SCHEMA_2020"
