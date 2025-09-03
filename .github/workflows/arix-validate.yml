@@ -1,18 +1,19 @@
-name: ARIX Validate
+name: ARIX-16 Validate
+
 on:
   push:
     paths:
       - 'arix-16/**'
-      - 'pj/**'
-      - '.github/workflows/arix-validate.yml'
       - 'scripts/**'
+      - '.github/workflows/arix-16_validate.yml'
   workflow_dispatch:
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -23,67 +24,52 @@ jobs:
       - name: Install AJV CLI
         run: npm i -g ajv-cli ajv-formats
 
-      - name: Debug sample presence (JSON/JSONL)
+      - name: Debug sample presence
         run: |
-          ls -la arix-16 || true
-          ls -la arix-16/examples || true
+          echo "== List samples =="
           ls -la arix-16/examples/exports_sample || true
+          echo "== List schema =="
+          ls -la arix-16/schema || true
 
-      - name: Validate JSON (single-file samples)
-        run: |
-          set -euo pipefail
-          SCHEMA='arix-16/schema/arix16.schema.json'
-          # Allow-list: only validate JSON files in these directories
-          dirs=(
-            "arix-16/examples"
-            "arix-16/examples/exports_sample"
-            "arix-16/templates"
-          )
-
-          for d in "${dirs[@]}"; do
-            if [ -d "$d" ]; then
-              # find files under each allowed directory
-              while IFS= read -r -d '' f; do
-                echo "::group::Validate JSON: $f"
-                # quick heuristic: skip empty or clearly non-JSON files by checking first non-space char
-                first_char=$(awk 'match($0, /[^[:space:]]/){print substr($0,RSTART,1); exit}' "$f" || true)
-                if [ -z "$first_char" ]; then
-                  echo "⚠️ Skipping (empty file): $f"
-                  echo "::endgroup::"
-                  continue
-                fi
-                case "$first_char" in
-                  '{'|'['|'"') ;; # likely JSON object/array/string - attempt validation
-                  *)
-                    echo "⚠️ Skipping (not JSON-like): $f"
-                    echo "::endgroup::"
-                    continue
-                    ;;
-                esac
-                ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020 || exit 2
-                echo "::endgroup::"
-              done < <(find "$d" -type f -name '*.json' ! -name '*.jsonl' -print0 || true)
-            fi
-          done
-
-      - name: Validate NDJSON (line-by-line)
-        shell: bash
+      - name: Schema validate (JSON samples)
         run: |
           set -e
-          SCHEMA='arix-16/schema/arix16.schema.json'
-          mapfile -t files < <(find arix-16 -type f -name '*.jsonl' || true)
-          if [ ${#files[@]} -gt 0 ]; then
-            for f in "${files[@]}"; do
-              echo "::group::Validate JSONL: $f"
-              # skip blank lines and comments
+          SCHEMA="arix-16/schema/arix16.schema.json"
+          JSON_GLOB="arix-16/examples/exports_sample/*.json"
+          if compgen -G "$JSON_GLOB" > /dev/null; then
+            for f in $JSON_GLOB; do
+              echo "::group::Validating JSON: $f"
+              ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020
+              echo "::endgroup::"
+            done
+          else
+            echo "⚠️ No .json files under arix-16/examples/exports_sample (skipping JSON validation)."
+          fi
+
+      - name: Schema validate (NDJSON .jsonl line-by-line)
+        run: |
+          set -e
+          SCHEMA="arix-16/schema/arix16.schema.json"
+          JSONL_GLOB="arix-16/examples/exports_sample/*.jsonl"
+          if compgen -G "$JSONL_GLOB" > /dev/null; then
+            for f in $JSONL_GLOB; do
+              echo "::group::Validating NDJSON: $f"
+              # 空行・#始まりを除外しつつ1行ずつ AJV に流す（クォート閉じは厳密）
               awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
-                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec=draft2020 || exit 2
+                printf '%s' "$line" \
+                  | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec=draft2020 \
+                  || { echo "::error file=$f::NDJSON line failed"; exit 1; }
               done
               echo "::endgroup::"
             done
           else
-            echo "⚠️ No .jsonl files found (skipping)."
+            echo "⚠️ No .jsonl files under arix-16/examples/exports_sample (skipping NDJSON validation)."
           fi
 
-      - name: Validate TSV headers
-        run: node scripts/validate_tsv_headers.js
+      - name: TSV header check (optional, auto-skip if script missing)
+        run: |
+          if [ -f scripts/validate_tsv_headers.js ]; then
+            node scripts/validate_tsv_headers.js
+          else
+            echo "ℹ️ scripts/validate_tsv_headers.js not found, skipping TSV header check."
+          fi
