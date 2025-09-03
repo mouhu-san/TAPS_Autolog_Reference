@@ -1,83 +1,74 @@
-'name': 'ARIX Validate'
-'on':
-  'push':
-    'paths':
+name: ARIX Validate
+on:
+  push:
+    paths:
       - 'arix-16/**'
       - 'pj/**'
       - '.github/workflows/arix-validate.yml'
       - 'scripts/**'
-  'workflow_dispatch': null
-'jobs':
-  'validate':
-    'runs-on': 'ubuntu-latest'
-    'steps':
-      - 'name': 'Checkout'
-        'uses': 'actions/checkout@v4'
-      - 'name': 'Setup Node.js'
-        'uses': 'actions/setup-node@v4'
-        'with':
-          'node-version': '18'
-      - 'name': 'Install AJV CLI'
-        'run': 'npm i -g ajv-cli ajv-formats'
-      - 'name': 'Debug sample presence (JSON/JSONL)'
-        'run': 'ls -la arix-16 || true
+  workflow_dispatch:
 
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install AJV CLI
+        run: npm i -g ajv-cli ajv-formats
+
+      - name: Debug sample presence (JSON/JSONL)
+        run: |
+          ls -la arix-16 || true
           ls -la arix-16/examples || true
-
           ls -la arix-16/examples/exports_sample || true
 
-          '
-      - 'name': 'Validate JSON (single-file samples)'
-        'run': "set -e
-
+      - name: Validate JSON (single-file samples)
+        run: |
+          set -euo pipefail
           SCHEMA='pj/attachments/arix16.schema.json'
+          # Allow-list: only validate JSON files in these directories
+          dirs=(
+            "arix-16/examples"
+            "arix-16/examples/exports_sample"
+            "arix-16/templates"
+          )
 
-          # NOTE: Exclude AJV config file because schema expects a string, while ajv_config.json is an object
-          for f in $(find arix-16 -type f -name '*.json' ! -name '*.jsonl' \
-            -not -path 'arix-16/tools/ajv_config.json' \
-            -not -path 'arix-16/config/ajv.config.json' \
-            -not -path 'arix-16/config/ajv_config.json' || true); do
+          for d in "${dirs[@]}"; do
+            if [ -d "$d" ]; then
+              # find files under each allowed directory
+              while IFS= read -r -d '' f; do
+                echo "::group::Validate JSON: $f"
+                ajv validate -c ajv-formats -s "$SCHEMA" -d "$f" --spec=draft2020 || exit 2
+                echo "::endgroup::"
+              done < <(find "$d" -type f -name '*.json' ! -name '*.jsonl' -print0 || true)
+            fi
+          done
 
-          \  echo \"::group::Validate JSON: $f\"
-
-          \  ajv validate -c ajv-formats -s \"$SCHEMA\" -d \"$f\" --spec=draft2020 || exit 2
-
-          \  echo \"::endgroup::\"
-
-          done\n"
-      - 'name': 'Validate NDJSON (line-by-line)'
-        'shell': 'bash'
-        'run': "set -e
-
+      - name: Validate NDJSON (line-by-line)
+        shell: bash
+        run: |
+          set -e
           SCHEMA='pj/attachments/arix16.schema.json'
-
           mapfile -t files < <(find arix-16 -type f -name '*.jsonl' || true)
-
           if [ ${#files[@]} -gt 0 ]; then
-
-          \  for f in \"${files[@]}\"; do
-
-          \    echo \"::group::Validate JSONL: $f\"
-
-          \    # 空行/コメント(#)を除外して1行ずつ検証
-
-          \    awk 'NF && $0 !~ /^#/' \"$f\" | while IFS= read -r line; do
-
-          \      printf \"%s\" \"$line\" | ajv validate -c ajv-formats -s
-          \"$SCHEMA\" -d - --spec=draft2020 || exit 2
-
-          \    done
-
-          \    echo \"::endgroup::\"
-
-          \  done
-
+            for f in "${files[@]}"; do
+              echo "::group::Validate JSONL: $f"
+              # skip blank lines and comments
+              awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
+                printf "%s" "$line" | ajv validate -c ajv-formats -s "$SCHEMA" -d - --spec=draft2020 || exit 2
+              done
+              echo "::endgroup::"
+            done
           else
+            echo "⚠️ No .jsonl files found (skipping)."
+          fi
 
-          \  echo \"⚠️ No .jsonl files found (skipping).\"
-
-          fi\n"
-      - 'name': 'Validate TSV headers'
-        'run': 'node scripts/validate_tsv_headers.js
-
-          '
+      - name: Validate TSV headers
+        run: node scripts/validate_tsv_headers.js
