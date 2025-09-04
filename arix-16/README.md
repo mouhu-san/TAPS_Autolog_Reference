@@ -2,7 +2,7 @@
 人間可読 × 機械可読の両立を目的とした参照一式。GRAU-16 を ARIX-16 に名称統一済み。
 
 ## 収録物
-- schema/arix16.schema.json … ARIX-16 JSON Schema（ajv等で検証可能）
+- schema/arix16.schema.draft-2020-12.json … ARIX-16 JSON Schema（ajv等で検証可能）
 - templates/arix16_header.tsv … TSVヘッダ（列順の契約）
 - templates/04_Triggers.tsv … トリガ分類・実行ルーティング辞書
 - templates/05_Memory.json … 記憶同期コンテキスト（運用規約）
@@ -26,5 +26,5 @@
 ## Validation（任意）
 ```bash
 npm i -g ajv-cli
-ajv validate -s ./arix-16/schema/arix16.schema.json   -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl --spec=draft2020
+ajv validate -s ./arix-16/schema/arix16.schema.draft-2020-12.json   -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl --spec=draft2020
 ```

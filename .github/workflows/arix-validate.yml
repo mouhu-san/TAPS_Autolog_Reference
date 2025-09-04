@@ -12,8 +12,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     env:
-      SCHEMA_2020: arix-16/schema/arix16.schema.json
-      SCHEMA_07:   arix-16/schema/arix16.schema.draft-07.json
+      SCHEMA_2020: arix-16/schema/arix16.schema.draft-2020-12.json
+      SCHEMA_07:   arix-16/schema/arix16.schema.draft-2020-12.draft-07.json
       # 許可リスト（必要に応じて追記）
       ALLOWED_JSON:  arix-16/examples/exports_sample/taps_arix16_min.json
       ALLOWED_JSONL: arix-16/examples/exports_sample/taps_arix16_min.jsonl
