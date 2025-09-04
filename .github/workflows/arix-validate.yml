@@ -30,7 +30,8 @@ jobs:
       - name: Install AJV CLI
         run: |
           npm i -g ajv-cli ajv-formats
-          ajv --version
+          # note: removed `ajv --version` because some ajv CLI variants treat --version as unexpected
+          # parameter (causing exit code 2) when no subcommand is provided in this environment.
 
       # デバッグ：スキーマ上の enum 可視化
       - name: Show schema enums (Intent / TopicTag)
@@ -58,6 +59,9 @@ jobs:
       - name: Validate JSON (draft2020-12, show all errors)
         run: |
           set -e
+          # make SCHEMA_2020 absolute to avoid path resolution issues on different shells/OS
+          SCHEMA_2020="$(readlink -f "$SCHEMA_2020" 2>/dev/null || realpath "$SCHEMA_2020" 2>/dev/null || python -c \"import os,sys;print(os.path.abspath(sys.argv[1]))\" \"$SCHEMA_2020\")"
+          echo "Using schema: $SCHEMA_2020"
           for f in $ALLOWED_JSON; do
             [ -f "$f" ] || continue
             echo "::group::Validating JSON: $f"
@@ -70,6 +74,8 @@ jobs:
       - name: Validate NDJSON (each line, draft2020-12, show all errors)
         run: |
           set -e
+          # make SCHEMA_2020 absolute (same as single-file step)
+          SCHEMA_2020="$(readlink-fallback() { readlink -f "$1" 2>/dev/null || realpath "$1" 2>/dev/null || python -c "import os,sys;print(os.path.abspath(sys.argv[1]))" "$1"; }; readlink-fallback "$SCHEMA_2020")"
           for f in $ALLOWED_JSONL; do
             [ -f "$f" ] || continue
             echo "::group::Validating NDJSON: $f"
