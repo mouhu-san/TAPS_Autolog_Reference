@@ -11,7 +11,7 @@
         "/arix-16/examples/exports_sample/*.jsonl",
         "/exports/**/*.jsonl"
       ],
-      "url": "./arix-16/schema/arix16.schema.draft-2020-12.draft-07.json"
+      "url": "./arix-16/schema/arix16.schema.draft-07.json"
     }
   ]
 }

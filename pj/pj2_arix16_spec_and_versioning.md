@@ -51,10 +51,10 @@ A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16-final-2025-09-03-AT-S01-v1-memo
 - [`arix_id_to_uuid_map.tsv`](./attachments/arix_id_to_uuid_map.tsv) — ARIX と UUID の逆引き表
 - [`arix_tags.csv`](./attachments/arix_tags.csv) — タグ・用途DB
 - [`arix_metadata.jsonl`](./attachments/arix_metadata.jsonl) — 拡張メタ
-- [`arix16.schema.draft-2020-12.json`](./attachments/arix16.schema.draft-2020-12.json) — 文字列スキーマ（AJV 検証用・最小）
+- [`arix16.schema.json`](./attachments/arix16.schema.json) — 文字列スキーマ（AJV 検証用・最小）
 
 ## 6. 検証
-- AJV 例：`ajv validate -c ajv-formats -s ./attachments/arix16.schema.draft-2020-12.json -d ./attachments/arix_metadata.jsonl --spec=draft2020`
+- AJV 例：`ajv validate -c ajv-formats -s ./attachments/arix16.schema.json -d ./attachments/arix_metadata.jsonl --spec=draft2020`
 - TSV ヘッダ検証は pj8 の CI で `scripts/validate_tsv_headers.js` を用意。
 
 ## 7. 変更履歴

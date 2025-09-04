@@ -14,14 +14,14 @@
 
 2. ARIX-16 仕様一式は [./arix-16/](./arix-16/) にあります 
 
- - [schema/arix16.schema.draft-2020-12.json](./arix-16/schema/arix16.schema.draft-2020-12.json) … JSON Schema  
+ - [schema/arix16.schema.json](./arix-16/schema/arix16.schema.json) … JSON Schema  
  - [templates/](./arix-16/templates/) … TSVヘッダ・トリガ辞書・メモリ文脈  
  - [examples/](./arix-16/examples/) … 埋め込みメタ例・出力サンプル
 
   
 3. スキーマ検証（任意）
  npm i -g ajv-cli
- ajv validate -s ./arix-16/schema/arix16.schema.draft-2020-12.json \
+ ajv validate -s ./arix-16/schema/arix16.schema.json \
   -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl --spec=draft2020
 
 1. 他リポジトリから参照する場合は、./arix-16/templates/ を読み込んで契約（列順/必須項目）に従ってください。
@@ -38,7 +38,7 @@
   $qs = @"
   ## Quick Start
 
-  1. Clone:
+1. Clone:
      ```bash
      git clone https://github.com/mouhu-san/taps_autolog_reference.git
      cd taps_autolog_reference
@@ -102,4 +102,3 @@ VSCodeとAIの補助を駆使しながら、
 
 - [`TAPS_Autolog`](https://github.com/mouhu-san/TAPS_Autolog)
 - [`TAPS_Autolog_ClassificationSuite`](https://github.com/mouhu-san/TAPS_Autolog_ClassificationSuite)
-

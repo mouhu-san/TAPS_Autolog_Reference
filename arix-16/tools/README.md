@@ -2,7 +2,7 @@
 
 ## JSON Schema (ajv)
 npm i -g ajv-cli
-ajv validate -s ./arix-16/schema/arix16.schema.draft-2020-12.json   -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl --spec=draft2020
+ajv validate -s ./arix-16/schema/arix16.schema.json   -d ./arix-16/examples/exports_sample/taps_arix16_2025-W33.jsonl --spec=draft2020
 
 ## 整合チェック
 - UID 形式: TAPS-YYYY-MM-DD-SSS
