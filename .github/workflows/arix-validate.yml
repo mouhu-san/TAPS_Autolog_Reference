@@ -96,6 +96,9 @@ jobs:
                 | jq -c . > "$tmp" \
                 || { echo "❌ jq parse failed (line shown below)"; echo "$line"; rm -f "$tmp"; exit 2; }
               # AJV 検証
+              echo "---- debug: $tmp contents ----"
+              cat "$tmp"
+              echo "---- end debug ----"
               ajv validate -c ajv-formats --spec=draft2020 --all-errors --errors=text \
                 -s "$SCHEMA_2020" -d "$tmp" \
                 || { echo "❌ AJV invalid (line shown below)"; echo "$line"; rm -f "$tmp"; exit 2; }
