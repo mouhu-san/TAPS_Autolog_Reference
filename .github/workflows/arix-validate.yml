@@ -96,6 +96,7 @@ jobs:
               echo "---- end raw hexdump ----"
               # BOM/CR 除去 → 制御文字も削除 → jq で厳密パース（失敗時は即 NG 行を表示して終了）
               printf '%s' "$line" \
+                | iconv -f utf-8 -t utf-8 -c \
                 | perl -Mutf8 -pe 's/^\x{FEFF}//; s/\r$//; s/[\p{Cc}]//g' \
                 | jq -R 'fromjson' -c > "$tmp" \
                 || { echo "❌ jq parse failed (line shown below)"; echo "$line"; od -An -t x1 -v <<< "$line" || true; rm -f "$tmp"; exit 2; }
