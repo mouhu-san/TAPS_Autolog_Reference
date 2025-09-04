@@ -93,13 +93,16 @@ jobs:
               # BOM/CR 除去 → jq で厳密パース（失敗時は即 NG 行を表示して終了）
               printf '%s' "$line" \
                 | perl -pe 's/^\x{FEFF}//; s/\r$//' \
-                | jq -c . > "$tmp" \
+                | jq -R 'fromjson' -c > "$tmp" \
                 || { echo "❌ jq parse failed (line shown below)"; echo "$line"; rm -f "$tmp"; exit 2; }
               # 行頭スペース除去
               sed -i 's/^ *//' "$tmp"
               # AJV 検証
               echo "---- debug: $tmp contents ----"
               cat "$tmp"
+              echo "---- hexdump of $tmp ----"
+              # show hidden bytes to help diagnose encoding/control-char issues
+              od -An -t x1 -v "$tmp" || true
               echo "---- end debug ----"
               ajv validate -c ajv-formats --spec=draft2020 --all-errors --errors=text \
                 -s "$SCHEMA_2020" -d "$tmp" \
