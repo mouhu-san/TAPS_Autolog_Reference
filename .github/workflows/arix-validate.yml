@@ -95,6 +95,8 @@ jobs:
                 | perl -pe 's/^\x{FEFF}//; s/\r$//' \
                 | jq -c . > "$tmp" \
                 || { echo "❌ jq parse failed (line shown below)"; echo "$line"; rm -f "$tmp"; exit 2; }
+              # 行頭スペース除去
+              sed -i 's/^ *//' "$tmp"
               # AJV 検証
               echo "---- debug: $tmp contents ----"
               cat "$tmp"
