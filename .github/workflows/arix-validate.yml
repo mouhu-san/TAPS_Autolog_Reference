@@ -90,11 +90,15 @@ jobs:
             # 空行 / '#'始まりを除外し、1行ずつ処理
             awk 'NF && $0 !~ /^#/' "$f" | while IFS= read -r line; do
               tmp="$(mktemp)"
-              # BOM/CR 除去 → jq で厳密パース（失敗時は即 NG 行を表示して終了）
+              # debug: show raw line bytes to help detect BOM/CR/other hidden bytes
+              echo "---- raw line hexdump ----"
+              printf '%s' "$line" | od -An -t x1 -v || true
+              echo "---- end raw hexdump ----"
+              # BOM/CR 除去 → 制御文字も削除 → jq で厳密パース（失敗時は即 NG 行を表示して終了）
               printf '%s' "$line" \
-                | perl -pe 's/^\x{FEFF}//; s/\r$//' \
+                | perl -Mutf8 -pe 's/^\x{FEFF}//; s/\r$//; s/[\p{Cc}]//g' \
                 | jq -R 'fromjson' -c > "$tmp" \
-                || { echo "❌ jq parse failed (line shown below)"; echo "$line"; rm -f "$tmp"; exit 2; }
+                || { echo "❌ jq parse failed (line shown below)"; echo "$line"; od -An -t x1 -v <<< "$line" || true; rm -f "$tmp"; exit 2; }
               # 行頭スペース除去
               sed -i 's/^ *//' "$tmp"
               # AJV 検証
