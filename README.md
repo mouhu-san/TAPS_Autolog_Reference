@@ -79,6 +79,25 @@ TAPS_Autolog_Reference/
 
 ---
 
+## 🏷️ Canvas/Note 命名規則（正式）
+- 形式：`【<チャットルーム名>】 <短い説明>（ARIX: <A16v1-...>）`
+- 先頭メタ（本文1行目以降に必ず付与）：
+  - `ARIX-16: A16v1-...`
+  - `Created: YYYY-MM-DDThh:mm:ss+09:00`
+  - `Updated: YYYY-MM-DDThh:mm:ss+09:00`
+  - `Tags: #構造 #ToDo ...`
+
+### 例
+- タイトル：`【TAPS Driveスキャン計画】 PJ再配置の草案（ARIX: A16v1-TAPS-CANVAS-...）`
+- 先頭メタ：
+
+ARIX-16: A16v1-TAPS-CANVAS-REF-PJ-RECONF-2025-W36-...
+Created: 2025-09-04T10:12:00+09:00
+Updated: 2025-09-04T10:12:00+09:00
+Tags: #PJ #再配置 #ARIX16
+
+---
+
 ## 🔗 主要ファイルリンク
 
 - 戦略方針 → [`strategy/TAPS_指針.md`](./strategy/TAPS_指針.md)
@@ -90,8 +109,8 @@ TAPS_Autolog_Reference/
 ## 👤 制作者について
 
 本プロジェクトは、**プログラミング知識皆無の個人（開発者：旦那クン）**によって  
-VSCodeとAIの補助を駆使しながら、  
-“記録と対話の統合構造”を追い求めて開発されている。
+VSCodeとAIの補助を駆使しながら、
+「記録と対話の統合構造」を追い求めて開発されている。(write by tachyon)
 
 ---
 

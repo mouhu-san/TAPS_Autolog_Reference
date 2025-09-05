@@ -1,0 +1,4 @@
+trigger	category	action	priority	note
+@TAPS:save	memory	save_to_drive	5	記録保存
+@TAPS:scan	drive	scan_tree	4	Drive構造取得
+@TAPS:export	git	export_snapshot	4	Gitへ出力

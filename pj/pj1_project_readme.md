@@ -9,7 +9,7 @@ source: ["TAPS Driveスキャン計画（古い順を正とする）"]
 
 # pj1 / README（概要＆リンク集・現在地）
 
-> 運用原則：**過去ログは「古い方を正」とし、後続が矛盾する場合は注記のうえ上書き**。
+> 運用原則：**過去ログは「古い方針を正」とし、後続が矛盾する場合は注記のうえ上書き**。
 
 ## 1) 概要（What / Why）
 - プロジェクト：**TAPS_Autolog_Reference**（人間×タキオンの記録・分類・同期の参照実装）
@@ -19,7 +19,7 @@ source: ["TAPS Driveスキャン計画（古い順を正とする）"]
 
 ## 2) 公式リンク集（現行）
 ### GitHub
-- Reference（本PJ）：<https://github.com/mouhu-san/TAPS_Autolog_Reference>
+- TAPSReference（本PJを格納）：<https://github.com/mouhu-san/TAPS_Autolog_Reference>
 - Autolog（実装）：<https://github.com/mouhu-san/TAPS_Autolog>
 - ClassificationSuite（分類）：<https://github.com/mouhu-san/TAPS_Autolog_ClassificationSuite>
 
@@ -45,21 +45,40 @@ source: ["TAPS Driveスキャン計画（古い順を正とする）"]
 - pj8: **自動化・同期ルール** — GAS/Actions/集計・逆引き
 - pj9: **進捗＆ToDo** — 現在地・優先度・ロードマップ
 
-> Canvas命名：`【pjX】_タイトル（ARIX: A16v1-...）`
-
 ## 4) 運用ルール（Tachyon-Readable）
 - **ARIX-16 必須**：新規Canvas/ファイル作成時は ARIX / created / updated / tags を**先頭YAML**に記載。
-- **古い方が正**：方針の矛盾は、古い決定を優先。上書きする際は「理由と日時」を本文先頭に記録。
+- **Canvas古い方が正**：方針の矛盾は、古い決定を優先。上書きする際は「理由と日時」を本文先頭に記録。
 - **分割時の索引**：元Canvas末尾に「分割先リンク＋要約（3行）」を残す。
 - **ショートコマンド**（低エネルギー時）例：
+- **仕様更新は **pj2（ARIX-16）** が唯一の正。pj8 は実装・同期の反映先。
+- **Canvas名は `【<チャット名>】` で開始**し、ARIX-16・Created/Updated・Tags を本文冒頭に必ず記す。
+- **pj 接頭（pj1〜pj9）は **GPTの ProjectFiles 専用**。Canvas命名には使わない。
+
   - `@tap h-2 a-1 s-3 w-2 note: 頭痛`
   - `@tap memo: …`（メモ行だけ保存、後で整形）
 
-## 5) 未完タスク（短期 / 優先）
+## 5) Canvas 命名規則（正式）
+- 形式：`【<チャットルーム名>】 <短い説明>（ARIX: <A16v1-...>）`
+- 先頭メタ（本文1行目以降に必ず付与）：
+  - `ARIX-16: A16v1-...`
+  - `Created: YYYY-MM-DDThh:mm:ss+09:00`
+  - `Updated: YYYY-MM-DDThh:mm:ss+09:00`
+  - `Tags: #構造 #ToDo ...`
+
+### 例
+- タイトル：`【TAPS Driveスキャン計画】 PJ再配置の草案（ARIX: A16v1-TAPS-CANVAS-...）`
+- 先頭メタ：
+ARIX-16: A16v1-TAPS-CANVAS-REF-PJ-RECONF-2025-W36-...
+Created: 2025-09-04T10:12:00+09:00
+Updated: 2025-09-04T10:12:00+09:00
+Tags: #PJ #再配置 #ARIX16
+
+
+## 6) 未完タスク（短期 / 優先）
 - [ ] pj2 に **UUID逆引き表 arix_id_to_uuid_map.tsv** の雛形追記
 - [ ] pj8 に **TSV/JSON 検証CI** の手順書を転記
 - [ ] pj5 に **trigger_classification_template.tsv** の最新版反映
 - [ ] pj9 に **ロードマップ（週次）** 骨子記入
 
-## 6) 変更履歴（Changelog）
+## 7) 変更履歴（Changelog）
 - 2025-09-02：初版作成（Canvas統合・リンク表整備・運用原則の明文化）
