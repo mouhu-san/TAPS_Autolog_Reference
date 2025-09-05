@@ -1,9 +1,9 @@
 {
-  "UID":"TAPS-2025-08-24-001",
-  "Timestamp":"2025-08-24T10:00:00+09:00",
-  "Speaker":"user",
-  "TopicTag":"memory_sync",
-  "Intent":"decide",
-  "ThreadRoot":"TAPS-2025-08-24-000",
-  "RawExcerpt":"検証用の最小例"
+  "UID": "TAPS-2025-08-24-001",
+  "Timestamp": "2025-08-24T10:00:00+09:00",
+  "Speaker": "user",
+  "TopicTag": "memory_sync",
+  "Intent": "decide",
+  "ThreadRoot": "TAPS-2025-08-24-000",
+  "RawExcerpt": "検証用の最小例"
 }
