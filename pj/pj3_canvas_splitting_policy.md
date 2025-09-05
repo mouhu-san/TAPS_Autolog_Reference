@@ -11,7 +11,6 @@
 命名：`【<チャットルーム名>】 <短い説明>（ARIX: A16v1-...）`
 備考：pjX は **GPT内「ProjectFiles」用の限定接頭**。Canvas名には用いない。
 
-
 ## 分割手順
 1. 分割ポイントを決める（話題/期間/出力形式）
 2. 新Canvasを作成し、**ARIX-16** を発行して先頭に記載
@@ -34,8 +33,7 @@
 ### 例
 - タイトル：`【TAPS Driveスキャン計画】 PJ再配置の草案（ARIX: A16v1-TAPS-CANVAS-...）`
 - 先頭メタ：
-
-ARIX-16: A16v1-TAPS-CANVAS-REF-PJ-RECONF-2025-W36-...
-Created: 2025-09-04T10:12:00+09:00
-Updated: 2025-09-04T10:12:00+09:00
-Tags: #PJ #再配置 #ARIX16
+  - `ARIX-16: A16v1-TAPS-CANVAS-REF-PJ-RECONF-2025-W36-...`
+  - `Created: 2025-09-04T10:12:00+09:00`
+  - `Updated: 2025-09-04T10:12:00+09:00`
+  - `Tags: #PJ #再配置 #ARIX16`

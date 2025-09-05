@@ -53,6 +53,8 @@ source: ["TAPS Driveスキャン計画（古い順を正とする）"]
 - **仕様更新は **pj2（ARIX-16）** が唯一の正。pj8 は実装・同期の反映先。
 - **Canvas名は `【<チャット名>】` で開始**し、ARIX-16・Created/Updated・Tags を本文冒頭に必ず記す。
 - **pj 接頭（pj1〜pj9）は **GPTの ProjectFiles 専用**。Canvas命名には使わない。
+- **pj_index.tsv の位置づけ** pj_index.tsv は *「pj ファイル群（リポジトリの ProjectFiles）」だけ**を管理する索引。
+- **Canvasはチャット名プレフィックスで別管理**（必要なら canvas_index.tsv を増設）。
 
   - `@tap h-2 a-1 s-3 w-2 note: 頭痛`
   - `@tap memo: …`（メモ行だけ保存、後で整形）
@@ -68,10 +70,19 @@ source: ["TAPS Driveスキャン計画（古い順を正とする）"]
 ### 例
 - タイトル：`【TAPS Driveスキャン計画】 PJ再配置の草案（ARIX: A16v1-TAPS-CANVAS-...）`
 - 先頭メタ：
-ARIX-16: A16v1-TAPS-CANVAS-REF-PJ-RECONF-2025-W36-...
-Created: 2025-09-04T10:12:00+09:00
-Updated: 2025-09-04T10:12:00+09:00
-Tags: #PJ #再配置 #ARIX16
+  - `ARIX-16: A16v1-TAPS-CANVAS-REF-PJ-RECONF-2025-W36-...`
+  - `Created: 2025-09-04T00:00:00+09:00`
+  - `Updated: 2025-09-04T00:00:00+09:00`
+  - `Tags: #PJ #分割規約 #ARIX16`
+
+
+- 先頭メタの例（追加サンプル）：
+  - `ARIX-16: A16v1-TAPS-CANVAS-REF-PJ-RECONF-2025-W36-...`
+  - `Created: 2025-09-04T00:00:00+09:00`
+  - `Updated: 2025-09-04T00:00:00+09:00`
+  - `Tags: #PJ #分割規約 #ARIX16`
+
+
 
 
 ## 6) 未完タスク（短期 / 優先）

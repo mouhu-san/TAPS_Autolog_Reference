@@ -1,2 +1,10 @@
-pj_id	title_canvas	title_md	file_relpath	canvas_name	status	last_updated
-pj1	README（概要＆リンク集）	pj1_project_readme	pj/pj1_project_readme.md	【pj1】README	ACTIVE	2025-09-02
+pj_id	title_canvas	title_md	file_relpath	status	last_updated
+pj1	README（概要＆リンク集）	pj1_project_readme	pj/pj1_project_readme.md	ACTIVE	2025-09-02
+pj2	ARIX-16 仕様（定義）— 3-9-4 構造	pj2_arix16_spec_and_versioning.md	pj\pj2_arix16_spec_and_versioning.md	ACTIVE	2025-09-02
+pj3	Canvas分類＆分割運用ポリシー（v1）	pj3_canvas_splitting_policy.md	pj\pj3_canvas_splitting_policy.md	ACTIVE	2025-09-02
+pj4	エクスポート・命名事例集（Good / Bad）	pj4_naming_samples_and_antipatterns.md	pj\pj4_naming_samples_and_antipatterns.md	ACTIVE	2025-09-02
+pj5	テンプレート集（最低限）	pj5_templates_bundle.md	pj\pj5_templates_bundle.md	ACTIVE	2025-09-02
+pj6	FAQ・トラブル対策（簡易版）	pj6_faq_and_troubleshooting.md	pj\pj6_faq_and_troubleshooting.md	ACTIVE	2025-09-02
+pj7	プロジェクト構造・データフロー図（最小）	pj7_project_structure_and_dataflow.md	pj\pj7_project_structure_and_dataflow.md	ACTIVE	2025-09-02
+pj8	自動化・同期ルール（ドラフト運用）	pj8_automation_and_sync_rules.md	pj\pj8_automation_and_sync_rules.md	ACTIVE	2025-09-02
+pj9	進捗＆ToDo管理（軽量版）	pj9_progress_and_todo.md	pj\pj9_progress_and_todo.md	ACTIVE	2025-09-02
