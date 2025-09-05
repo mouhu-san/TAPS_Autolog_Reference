@@ -94,12 +94,17 @@ jobs:
               echo "---- raw line hexdump ----"
               printf '%s' "$line" | od -An -t x1 -v || true
               echo "---- end raw hexdump ----"
-                    # BOM/CR/置換文字(U+FFFD)除去 → 制御文字も削除 → jq で厳密パース（失敗時は即 NG）
-                    printf '%s' "$line" \
-                      | iconv -f utf-8 -t utf-8 -c \
-                      | perl -Mutf8 -pe 's/^\x{FEFF}//; s/\x{FFFD}//g; s/\r$//; s/[\p{Cc}]//g' \
-                      | jq -R 'fromjson' -c > "$tmp" \
-                      || { echo "❌ jq parse failed (line shown below)"; echo "$line"; od -An -t x1 -v <<< "$line" || true; rm -f "$tmp"; exit 2; }
+              # Strict UTF-8 cleaning and JSON validation using iconv + sed + jq
+              # Write line to a small tempfile to avoid word-splitting issues
+              infile="$(mktemp)"
+              printf '%s' "$line" > "$infile"
+              # iconv: drop invalid sequences; sed: remove replacement-char U+FFFD (if present) and BOM; jq: strict parse
+              iconv -f utf-8 -t utf-8 -c "$infile" \
+                | sed 's/\xEF\xBF\xBD//g; s/\xEF\xBB\xBF//g; s/\r$//g' \
+                | sed 's/\x{FEFF}//g' \
+                | jq -R 'fromjson' -c > "$tmp" \
+                || { echo "❌ jq parse failed (line shown below)"; echo "$line"; od -An -t x1 -v <<< "$line" || true; rm -f "$tmp" "$infile"; exit 2; }
+              rm -f "$infile"
               # 行頭スペース除去
               sed -i 's/^ *//' "$tmp"
               # AJV 検証
