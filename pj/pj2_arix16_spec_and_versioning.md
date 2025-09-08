@@ -46,6 +46,25 @@ A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16-final-2025-09-03-AT-S01-v1-memo
 - 区切りは `-`、半角英数字と `_` のみ（空白・全角は不可）。
 - H系は意味を保った短い英語/スラグにする（日本語は変換）。
 - 生成順序：M1→M2→M3→H1..H9→M4→M5→M6→M7。
+- 省略不可（必須）。不明な場合は `unknown` や `rsv` を入れる。
+
+### ARIX-16 と ts / uid / ctx の併用規定
+
+- **ARIX-16** … Canvas/ログ単位の意味付きID（[機械3]-{人間9}-[機械4]）
+- **ts** …… 発言・記録行単位のタイムスタンプ（ISO 8601）
+- **uid** …… 必要時のみ発言行に付与する短縮ID（例：`uid:ts連番`）
+- **ctx** …… 話題・用途などの文脈ラベル
+
+### 記述例（JSONL）
+```json
+{"UID":"TAPS-2025-09-05-001","ts":"2025-09-05T23:59:47+09:00","ctx":"TAPS心理観測","text":"…"}
+```
+
+### 記述例（Markdown）
+```markdown
+ts:2025-09-05T23:59:47+09:00  uid:20250905-001  ctx:TAPS心理観測
+本文…
+```
 
 ## 5. 付帯ファイル（テンプレ）
 - [`arix_id_to_uuid_map.tsv`](./attachments/arix_id_to_uuid_map.tsv) — ARIX と UUID の逆引き表
@@ -59,3 +78,9 @@ A16v1-TAPS-CANVAS-2025W35-PJ-spec-arix16-final-2025-09-03-AT-S01-v1-memo
 
 ## 7. 変更履歴
 - 2025-09-03: 初版（v1.0）作成
+
+## メモ
+- memory_sync.gs 内で 保存直前に ensureTs()/ensureUid() を必ず通す
+- 既存 ts がある行はヘッダ優先で上書きしない
+- JSONL/MDどちらでも行単位で安全に付与
+- 失敗時は Queue に積んで リトライ（後日拡張）
